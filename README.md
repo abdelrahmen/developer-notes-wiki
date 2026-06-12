@@ -25,23 +25,13 @@ Other commands:
 
 ## Cloud sync setup
 
-Sync your wiki across machines automatically. Choose **one** provider in the app (JSONBin.io or GitHub Gist). Only the active provider is used.
+Sync your wiki across machines automatically. Choose **one** provider in the app (GitHub Gist or JSONBin.io). Only the active provider is used.
+
+**Recommended:** GitHub Gist — generous free limits and no per-request quota concerns for typical personal wiki use.
 
 Open **Sidebar → Sync Settings** to configure.
 
-### JSONBin.io (recommended — simplest setup)
-
-1. Go to [jsonbin.io](https://jsonbin.io) and create a free account.
-2. Open your dashboard and go to **API Keys**.
-3. Copy your **Master Key**.
-4. Either:
-   - Create a new bin in the dashboard and copy the **Bin ID**, or
-   - Leave Bin ID empty and click **Create Remote** in the app after entering your Master Key.
-5. In the app: **Sync Settings → JSONBin.io**
-6. Paste your **Master Key** and **Bin ID** (or bin URL).
-7. Click **Test Connection**, then **Save**.
-
-### GitHub Gist
+### GitHub Gist (recommended)
 
 1. Go to GitHub → **Settings** → **Developer settings** → **Personal access tokens**.
 2. Create a token (classic or fine-grained) with **gist** scope.
@@ -51,6 +41,20 @@ Open **Sidebar → Sync Settings** to configure.
 4. Copy the gist URL (e.g. `https://gist.github.com/yourname/abc123def456`).
 5. In the app: **Sync Settings → GitHub Gist**
 6. Paste your **Personal Access Token** and **Gist URL or ID**.
+7. Click **Test Connection**, then **Save**.
+
+### JSONBin.io
+
+> **Warning:** JSONBin free accounts are limited to **10,000 total API requests** (lifetime, not monthly). Background sync checks on app open and tab focus can consume this quota quickly. Prefer GitHub Gist unless you have a paid JSONBin plan or very light usage.
+
+1. Go to [jsonbin.io](https://jsonbin.io) and create a free account.
+2. Open your dashboard and go to **API Keys**.
+3. Copy your **Master Key**.
+4. Either:
+   - Create a new bin in the dashboard and copy the **Bin ID**, or
+   - Leave Bin ID empty and click **Create Remote** in the app after entering your Master Key.
+5. In the app: **Sync Settings → JSONBin.io**
+6. Paste your **Master Key** and **Bin ID** (or bin URL).
 7. Click **Test Connection**, then **Save**.
 
 ### How sync works

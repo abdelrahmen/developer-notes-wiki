@@ -155,8 +155,8 @@ export default function SyncSettingsModal({
             <div className="grid grid-cols-1 gap-2">
               {([
                 ['none', isAr ? 'بدون مزامنة' : 'None'],
-                ['jsonbin', 'JSONBin.io'],
                 ['gist', 'GitHub Gist'],
+                ['jsonbin', 'JSONBin.io'],
               ] as const).map(([value, label]) => (
                 <label
                   key={value}
