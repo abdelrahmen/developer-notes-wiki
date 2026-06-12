@@ -22,7 +22,8 @@ import {
   Server,
   Activity,
   Cpu,
-  Database
+  Database,
+  FolderOpen
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -95,6 +96,12 @@ export default function Sidebar({
       [catId]: !prev[catId]
     }));
   };
+
+  const topLevelCategories = categories.filter(cat => !cat.parentId);
+  const hasNoCategories = categories.length === 0;
+
+  const addCategoryButtonClass =
+    'flex items-center justify-center w-8 h-8 min-w-[32px] min-h-[32px] rounded-md bg-[#252525] border border-[#2F2F2F] text-[#9B9B9B] cursor-pointer transition-all hover:bg-[#2F2F2F] hover:text-[#E3E3E3] hover:border-[#373737] hover:shadow-[0_0_10px_rgba(255,255,255,0.06)] active:scale-95';
 
   // Find all pages inside a category and its nested children sub-categories recursively
   const getCategoryPagesRecursive = (catId: string): TopicPage[] => {
@@ -465,16 +472,42 @@ export default function Sidebar({
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#9B9B9B]">
             {isAr ? 'المقالات والأقسام' : 'Wiki Navigation'}
           </span>
-          <button 
+          <button
+            type="button"
             onClick={onAddCategory}
-            className="p-1 hover:bg-[#2F2F2F] rounded text-[#9B9B9B] hover:text-[#E3E3E3] transition-colors cursor-pointer"
+            className={addCategoryButtonClass}
             title={isAr ? 'إضافة قسم جديد' : 'Create Category'}
+            aria-label={isAr ? 'إضافة قسم جديد' : 'Create Category'}
           >
-            <Plus size={13} />
+            <Plus size={16} strokeWidth={2.5} />
           </button>
         </div>
 
-        {categories.filter(cat => !cat.parentId).map((cat) => renderCategoryRecursive(cat))}
+        {hasNoCategories ? (
+          <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+            <div className="w-12 h-12 rounded-lg bg-[#252525] border border-[#2F2F2F] flex items-center justify-center mb-3">
+              <FolderOpen size={22} className="text-[#9B9B9B]" strokeWidth={1.75} />
+            </div>
+            <p className="text-sm font-semibold text-gray-200 mb-1">
+              {isAr ? 'لا توجد أقسام بعد' : 'No categories yet'}
+            </p>
+            <p className="text-xs text-[#9B9B9B] mb-5 max-w-[220px] leading-relaxed">
+              {isAr
+                ? 'نظّم توثيقك بإنشاء قسمك الأول وتجميع المواضيع ذات الصلة.'
+                : 'Organize your documentation by creating your first category.'}
+            </p>
+            <button
+              type="button"
+              onClick={onAddCategory}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-md bg-[#3E7B5D] hover:bg-[#468969] text-white text-xs font-semibold cursor-pointer transition-all hover:shadow-[0_0_14px_rgba(62,123,93,0.45)] active:scale-[0.98]"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              <span>{isAr ? 'إنشاء القسم الأول' : 'Create First Category'}</span>
+            </button>
+          </div>
+        ) : (
+          topLevelCategories.map((cat) => renderCategoryRecursive(cat))
+        )}
       </div>
 
       {/* Sidebar Footer details */}
