@@ -10,6 +10,7 @@ import PageView from './components/PageView';
 import EditorModal from './components/EditorModal';
 import SyncSettingsModal from './components/SyncSettingsModal';
 import { Menu, X, AlertCircle } from 'lucide-react';
+import { collectCategoryDescendantIds } from './lib/categoryUtils';
 import { loadLocalWikiState, loadSyncConfig, saveSyncConfig } from './lib/wikiStorage';
 import { initSyncManager, notifyLocalChange, pullAndMerge } from './lib/sync/syncManager';
 
@@ -162,13 +163,14 @@ export default function App() {
       type: 'danger',
       showCancel: true,
       onConfirm: () => {
-        const nextCategories = categories.filter(c => c.id !== catId);
-        const nextPages = pages.filter(p => p.categoryId !== catId);
+        const idsToRemove = collectCategoryDescendantIds(catId, categories);
+        const nextCategories = categories.filter(c => !idsToRemove.has(c.id));
+        const nextPages = pages.filter(p => !idsToRemove.has(p.categoryId));
 
         persistState({ categories: nextCategories, pages: nextPages });
 
         const activePage = pages.find(p => p.id === activePageId);
-        if (activePage && activePage.categoryId === catId) {
+        if (activePage && idsToRemove.has(activePage.categoryId)) {
           setActivePageId(nextPages[0]?.id || null);
         }
         setConfirmDialog(null);
