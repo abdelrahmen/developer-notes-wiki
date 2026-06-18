@@ -4,7 +4,8 @@
  */
 
 import { INITIAL_CATEGORIES, INITIAL_PAGES } from '../data/topics';
-import { Category, ContentBlock, Language, SyncConfig, TopicPage, WikiState, WikiSyncPayload } from '../types';
+import { Category, Language, SyncConfig, TopicPage, WikiState, WikiSyncPayload } from '../types';
+import { LegacyTopicPage, normalizePages } from './blockMigration';
 import { parseGistId, parseJsonBinId } from './sync/parseRemoteId';
 
 export const STORAGE_KEYS = {
@@ -24,54 +25,7 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   gist: { token: '', gistId: '' },
 };
 
-type LegacyContentBlock = {
-  id: string;
-  type: string;
-  textEn?: string;
-  textAr?: string;
-  titleEn?: string;
-  titleAr?: string;
-  code?: string;
-  language?: string;
-  links?: ContentBlock['links'];
-  imageUrl?: string;
-  captionEn?: string;
-  captionAr?: string;
-};
-type LegacyTopicPage = TopicPage & {
-  personalClarificationEn?: string;
-  personalClarificationAr?: string;
-};
-
-function migrateContentBlock(block: LegacyContentBlock): ContentBlock {
-  if (block.type !== 'definition') {
-    return block as ContentBlock;
-  }
-
-  const titleEn = block.titleEn?.trim();
-  const titleAr = block.titleAr?.trim();
-  const textEn = block.textEn?.trim() ?? '';
-  const textAr = block.textAr?.trim() ?? '';
-
-  return {
-    id: block.id,
-    type: 'callout',
-    textEn: titleEn ? `${titleEn}: ${textEn}` : textEn,
-    textAr: titleAr ? `${titleAr}: ${textAr}` : textAr,
-  };
-}
-
-export function normalizePage(page: LegacyTopicPage): TopicPage {
-  const { personalClarificationEn: _en, personalClarificationAr: _ar, ...rest } = page;
-  return {
-    ...rest,
-    blocks: (rest.blocks ?? []).map((block) => migrateContentBlock(block as LegacyContentBlock)),
-  };
-}
-
-function normalizePages(pages: LegacyTopicPage[]): TopicPage[] {
-  return pages.map(normalizePage);
-}
+export { normalizePage } from './blockMigration';
 
 export function loadSyncConfig(): SyncConfig {
   const raw = localStorage.getItem(STORAGE_KEYS.syncConfig);
@@ -240,7 +194,7 @@ export function persistWikiState(
   const updatedAt = bumpTimestamp ? new Date().toISOString() : (getLocalUpdatedAt() || new Date().toISOString());
 
   localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(state.categories));
-  localStorage.setItem(STORAGE_KEYS.pages, JSON.stringify(state.pages));
+  localStorage.setItem(STORAGE_KEYS.pages, JSON.stringify(normalizePages(state.pages as LegacyTopicPage[])));
   localStorage.setItem(STORAGE_KEYS.completed, JSON.stringify(state.completedPages));
   localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify(state.notes));
   localStorage.setItem(STORAGE_KEYS.language, state.language);

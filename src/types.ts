@@ -21,31 +21,22 @@ export interface ResourceLink {
   type: 'docs' | 'project' | 'link' | 'github';
 }
 
-export type BlockType = 'paragraph' | 'code' | 'callout' | 'links' | 'image' | 'heading';
+export type BlockType = 'markdown' | 'code' | 'links';
 
 export interface ContentBlock {
   id: string;
   type: BlockType;
-  
-  // Text contents
-  textEn?: string;
-  textAr?: string;
-  
-  // Headings or structural definitions
-  titleEn?: string;
-  titleAr?: string;
-  
-  // Code block specifics
+
+  // Markdown block
+  contentEn?: string;
+  contentAr?: string;
+
+  // Code block
   code?: string;
   language?: string;
-  
-  // Links block specifics
+
+  // Links block
   links?: ResourceLink[];
-  
-  // Image block specifics
-  imageUrl?: string;
-  captionEn?: string;
-  captionAr?: string;
 }
 
 export interface TopicPage {

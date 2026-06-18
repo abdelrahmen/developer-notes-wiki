@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { TopicPage, Category, ContentBlock, Language, UserProgress } from '../types';
+import { TopicPage, Category, Language, UserProgress } from '../types';
+import MarkdownContent from './MarkdownContent';
 import { 
   CheckCircle, 
   Circle, 
@@ -120,14 +121,10 @@ export default function PageView({
     let md = `# ${page.titleEn}\n\n`;
     if (page.blocks) {
       page.blocks.forEach(block => {
-        if (block.type === 'heading') {
-          md += `## ${block.titleEn || ''}\n\n`;
-        } else if (block.type === 'paragraph') {
-          md += `${block.textEn || ''}\n\n`;
+        if (block.type === 'markdown') {
+          md += `${block.contentEn || ''}\n\n`;
         } else if (block.type === 'code') {
           md += `\`\`\`${block.language || 'typescript'}\n${block.code || ''}\n\`\`\`\n\n`;
-        } else if (block.type === 'callout') {
-          md += `> **Tip:** ${block.textEn || ''}\n\n`;
         } else if (block.type === 'links' && block.links) {
           md += `### Resources\n`;
           block.links.forEach(link => {
@@ -546,29 +543,14 @@ export default function PageView({
         <div className={`mt-10 ${viewStyle === 'compact' ? 'space-y-4' : 'space-y-8'}`}>
           {page.blocks?.map((block) => {
             switch (block.type) {
-              
-              case 'heading':
+              case 'markdown':
                 return (
-                  <h3 
-                    key={block.id} 
-                    className={`font-bold text-white border-b border-[#2F2F2F] pb-1.5 hover:text-[#E3E3E3] transition-colors ${
-                      viewStyle === 'compact' ? 'text-base mt-4' : 'text-xl mt-8'
-                    }`}
-                  >
-                    {isAr ? block.titleAr : block.titleEn}
-                  </h3>
-                );
-
-              case 'paragraph':
-                return (
-                  <p 
-                    key={block.id} 
-                    className={`leading-relaxed font-sans whitespace-pre-wrap ${
-                      viewStyle === 'compact' ? 'text-xs text-[#CBD5E1]' : 'text-sm text-[#E3E3E3]/95'
-                    }`}
-                  >
-                    {isAr ? block.textAr : block.textEn}
-                  </p>
+                  <div key={block.id}>
+                    <MarkdownContent
+                      content={(isAr ? block.contentAr : block.contentEn) ?? ''}
+                      compact={viewStyle === 'compact'}
+                    />
+                  </div>
                 );
 
               case 'code':
@@ -614,18 +596,6 @@ export default function PageView({
                   </div>
                 );
 
-              case 'callout':
-                return (
-                  <div 
-                    key={block.id} 
-                    className="p-4 bg-[#252525] border border-[#2F2F2F] rounded flex items-start space-x-3 space-x-reverse transition-all"
-                  >
-                    <div className="flex-1 text-sm text-[#E3E3E3]/95 leading-relaxed font-medium whitespace-pre-wrap">
-                      {isAr ? block.textAr : block.textEn}
-                    </div>
-                  </div>
-                );
-
               case 'links':
                 return (
                   <div key={block.id} className="space-y-3 mt-4">
@@ -660,8 +630,10 @@ export default function PageView({
                   </div>
                 );
 
-              default:
+              default: {
+                const _exhaustive: never = block.type;
                 return null;
+              }
             }
           })}
         </div>

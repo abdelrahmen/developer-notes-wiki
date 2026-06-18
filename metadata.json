@@ -1,6 +1,6 @@
 {
   "name": "Developer Notes Wiki",
-  "description": "A Notion-style bilingual software development wiki with categories, pages, code snippets, callouts, and learning progress tracking.",
+  "description": "A Notion-style bilingual software development wiki with Markdown content, code blocks, resource links, and learning progress tracking.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

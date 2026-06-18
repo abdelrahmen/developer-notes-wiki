@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Category, TopicPage, ContentBlock, ResourceLink, Language } from '../types';
-import { X, Plus, Trash2, Code, AlignLeft, Info, Link as LinkIcon, GripVertical } from 'lucide-react';
+import { X, Plus, Trash2, Code, FileText, Link as LinkIcon, GripVertical } from 'lucide-react';
+import MarkdownEditorField from './MarkdownEditorField';
 
 interface EditorModalProps {
   isOpen: boolean;
@@ -30,14 +31,12 @@ export default function EditorModal({
   onSavePage,
   language
 }: EditorModalProps) {
-  // Category state
   const [catId, setCatId] = useState('');
   const [catTitleEn, setCatTitleEn] = useState('');
   const [catTitleAr, setCatTitleAr] = useState('');
   const [catIcon, setCatIcon] = useState('📁');
   const [catParentId, setCatParentId] = useState('');
 
-  // Page state
   const [pageId, setPageId] = useState('');
   const [pageCategoryId, setPageCategoryId] = useState('');
   const [pageTitleEn, setPageTitleEn] = useState('');
@@ -45,14 +44,10 @@ export default function EditorModal({
   const [pageIcon, setPageIcon] = useState('📄');
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
 
-  // Local state for dragging blocks
   const [draggedBlockIndex, setDraggedBlockIndex] = useState<number | null>(null);
   const [dragOverBlockIndex, setDragOverBlockIndex] = useState<number | null>(null);
-
-  // Local helper UI states for adding blocks
   const [activeTab, setActiveTab] = useState<'meta' | 'content'>('meta');
 
-  // Load initial data
   useEffect(() => {
     if (isOpen) {
       setActiveTab('meta');
@@ -78,17 +73,11 @@ export default function EditorModal({
         setPageIcon('🚀');
         setBlocks([
           {
-            id: 'block-p-' + Date.now(),
-            type: 'paragraph',
-            textEn: '',
-            textAr: ''
+            id: 'block-md-' + Date.now(),
+            type: 'markdown',
+            contentEn: '## Section\n\nWrite your article content here.',
+            contentAr: '## عنوان القسم\n\nاكتب محتوى المقالة هنا.',
           },
-          {
-            id: 'block-code-' + Date.now(),
-            type: 'code',
-            language: 'typescript',
-            code: '// Write code here'
-          }
         ]);
       } else if (type === 'edit-page' && initialPageData) {
         setPageId(initialPageData.id);
@@ -105,27 +94,35 @@ export default function EditorModal({
 
   const isAr = language === 'ar';
 
-  const addBlock = (blockType: 'paragraph' | 'code' | 'callout' | 'links') => {
+  const addBlock = (blockType: 'markdown' | 'code' | 'links') => {
     const id = 'block-' + Date.now() + '-' + Math.floor(Math.random() * 100);
     let newBlock: ContentBlock;
 
     switch (blockType) {
-      case 'paragraph':
-        newBlock = { id, type: 'paragraph', textEn: '', textAr: '' };
+      case 'markdown':
+        newBlock = {
+          id,
+          type: 'markdown',
+          contentEn: '',
+          contentAr: '',
+        };
         break;
       case 'code':
         newBlock = { id, type: 'code', language: 'typescript', code: '// Enter script here' };
         break;
-      case 'callout':
-        newBlock = { id, type: 'callout', textEn: '💡 Essential Tip: ', textAr: '💡 نصيحة أساسية: ' };
-        break;
       case 'links':
-        newBlock = { 
-          id, 
-          type: 'links', 
+        newBlock = {
+          id,
+          type: 'links',
           links: [
-            { id: 'link-' + Date.now(), labelEn: 'Official Website', labelAr: 'الموقع الرسمي للتوثيق', url: 'https://', type: 'docs' }
-          ] 
+            {
+              id: 'link-' + Date.now(),
+              labelEn: 'Official Website',
+              labelAr: 'الموقع الرسمي للتوثيق',
+              url: 'https://',
+              type: 'docs',
+            },
+          ],
         };
         break;
     }
@@ -169,7 +166,7 @@ export default function EditorModal({
         labelEn: 'New Documentation',
         labelAr: 'توثيق مرجعي جديد',
         url: 'https://',
-        type: 'docs'
+        type: 'docs',
       };
       updateBlock(blockIndex, { links: [...currentLinks, newLink] });
     }
@@ -194,7 +191,7 @@ export default function EditorModal({
       titleEn: catTitleEn.trim(),
       titleAr: catTitleAr.trim(),
       icon: catIcon.trim() || '📁',
-      parentId: catParentId ? catParentId : undefined
+      parentId: catParentId ? catParentId : undefined,
     });
     onClose();
   };
@@ -216,22 +213,36 @@ export default function EditorModal({
       titleAr: pageTitleAr.trim(),
       icon: pageIcon.trim() || '📄',
       lastUpdated: new Date().toISOString().split('T')[0],
-      blocks
+      blocks,
     });
     onClose();
   };
 
   const isCategory = type === 'add-category' || type === 'editing-category';
 
+  const blockLabel = (block: ContentBlock): string => {
+    switch (block.type) {
+      case 'markdown':
+        return 'Markdown';
+      case 'code':
+        return isAr ? 'كود' : 'Code';
+      case 'links':
+        return isAr ? 'روابط' : 'Links';
+      default: {
+        const _exhaustive: never = block.type;
+        return _exhaustive;
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
-      <div 
+      <div
         dir={isAr ? 'rtl' : 'ltr'}
         className={`w-full max-w-3xl bg-[#202020] border border-[#2F2F2F] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${
           isAr ? 'font-cairo' : 'font-sans'
         }`}
       >
-        {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2F2F2F] bg-[#202020]">
           <div>
             <h2 className="text-xl font-bold text-white">
@@ -247,7 +258,7 @@ export default function EditorModal({
               {isAr ? 'يتم حفظ كافة البيانات محلياً في المتصفح' : 'All modifications are persisted securely in local memory'}
             </p>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1 hover:bg-[#2F2F2F] rounded text-gray-400 hover:text-white transition-colors"
           >
@@ -255,7 +266,6 @@ export default function EditorModal({
           </button>
         </div>
 
-        {/* Form area */}
         {isCategory ? (
           <form onSubmit={submitCategory} className="p-6 overflow-y-auto space-y-4">
             <div className="grid grid-cols-3 gap-4">
@@ -351,7 +361,6 @@ export default function EditorModal({
           </form>
         ) : (
           <form onSubmit={submitPage} className="flex-1 overflow-hidden flex flex-col">
-            {/* Page Tabs */}
             <div className="flex bg-[#202020] px-6 border-b border-[#2F2F2F]">
               <button
                 type="button"
@@ -362,7 +371,7 @@ export default function EditorModal({
                     : 'border-transparent text-[#9B9B9B] hover:text-[#E3E3E3]'
                 }`}
               >
-                {isAr ? 'منطوق الصفحة والتوصيف' : '1. Page Metadata & Clarification'}
+                {isAr ? 'معلومات الصفحة' : '1. Page Metadata'}
               </button>
               <button
                 type="button"
@@ -373,11 +382,10 @@ export default function EditorModal({
                     : 'border-transparent text-[#9B9B9B] hover:text-[#E3E3E3]'
                 }`}
               >
-                {isAr ? 'مجموعة كتل المحتوى' : '2. Content Blocks (' + blocks.length + ')'}
+                {isAr ? `المحتوى (${blocks.length})` : `2. Content (${blocks.length})`}
               </button>
             </div>
 
-            {/* Scrollable inputs wrapper */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {activeTab === 'meta' ? (
                 <div className="space-y-4">
@@ -445,18 +453,17 @@ export default function EditorModal({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Tool shelf */}
                   <div className="flex flex-wrap gap-2 p-3 bg-[#202020] border border-[#2F2F2F] rounded items-center">
                     <span className="text-xs text-[#9B9B9B] self-center mr-1">
-                      {isAr ? 'إدراج كتلة:' : 'Insert block:'}
+                      {isAr ? 'إضافة كتلة:' : 'Add block:'}
                     </span>
                     <button
                       type="button"
-                      onClick={() => addBlock('paragraph')}
+                      onClick={() => addBlock('markdown')}
                       className="flex items-center space-x-1 border border-[#2F2F2F] bg-[#252525] hover:bg-[#2F2F2F] text-xs px-2.5 py-1 rounded text-gray-300 cursor-pointer transition-colors"
                     >
-                      <AlignLeft size={13} />
-                      <span>{isAr ? 'بارغراف' : 'Paragraph'}</span>
+                      <FileText size={13} />
+                      <span>Markdown</span>
                     </button>
                     <button
                       type="button"
@@ -464,15 +471,7 @@ export default function EditorModal({
                       className="flex items-center space-x-1 border border-[#2F2F2F] bg-[#252525] hover:bg-[#2F2F2F] text-xs px-2.5 py-1 rounded text-gray-300 cursor-pointer transition-colors"
                     >
                       <Code size={13} />
-                      <span>{isAr ? 'برمجة' : 'Code'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addBlock('callout')}
-                      className="flex items-center space-x-1 border border-[#2F2F2F] bg-[#252525] hover:bg-[#2F2F2F] text-xs px-2.5 py-1 rounded text-gray-300 cursor-pointer transition-colors"
-                    >
-                      <Info size={13} />
-                      <span>{isAr ? 'ملاحظة ملونة' : 'Callout'}</span>
+                      <span>{isAr ? 'كود' : 'Code'}</span>
                     </button>
                     <button
                       type="button"
@@ -480,28 +479,30 @@ export default function EditorModal({
                       className="flex items-center space-x-1 border border-[#2F2F2F] bg-[#252525] hover:bg-[#2F2F2F] text-xs px-2.5 py-1 rounded text-gray-300 cursor-pointer transition-colors"
                     >
                       <LinkIcon size={13} />
-                      <span>{isAr ? 'روابط مشاريع' : 'Resource Links'}</span>
+                      <span>{isAr ? 'روابط' : 'Resource Links'}</span>
                     </button>
                   </div>
 
                   {blocks.length === 0 ? (
                     <div className="text-center py-8 bg-[#252525] rounded border border-dashed border-[#2F2F2F]">
                       <p className="text-sm text-[#9B9B9B]">
-                        {isAr ? 'لم يتم إضافة كتل محتوى بعد. اختر كتلة من الأعلى لبناء الصفحة.' : 'No blocks added yet. Click a button above to start assembling page blocks.'}
+                        {isAr
+                          ? 'ابدأ بإضافة كتلة Markdown أو كود أو روابط.'
+                          : 'Start by adding a Markdown, Code, or Resource Links block.'}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {blocks.map((block, bIdx) => (
-                        <div 
-                          key={block.id} 
+                        <div
+                          key={block.id}
                           className={`p-4 bg-[#202020] border rounded relative space-y-3 group/block select-none transition-all ${
-                            draggedBlockIndex === bIdx 
-                              ? 'opacity-30 border-dashed border-[#2F2F2F]' 
+                            draggedBlockIndex === bIdx
+                              ? 'opacity-30 border-dashed border-[#2F2F2F]'
                               : 'border-[#2F2F2F] hover:bg-[#202020]/85'
                           } ${
-                            dragOverBlockIndex === bIdx 
-                              ? 'border-t-2 border-emerald-500 bg-[#2A3F33]/20' 
+                            dragOverBlockIndex === bIdx
+                              ? 'border-t-2 border-emerald-500 bg-[#2A3F33]/20'
                               : ''
                           }`}
                           draggable
@@ -546,11 +547,10 @@ export default function EditorModal({
                               <div className="cursor-grab active:cursor-grabbing text-[#9B9B9B] hover:text-[#E3E3E3] p-1 rounded hover:bg-[#2F2F2F]/40 shrink-0 transition-colors">
                                 <GripVertical size={13} strokeWidth={2.5} />
                               </div>
-                              {block.type === 'paragraph' && <AlignLeft size={12} />}
+                              {block.type === 'markdown' && <FileText size={12} />}
                               {block.type === 'code' && <Code size={12} />}
-                              {block.type === 'callout' && <Info size={12} />}
                               {block.type === 'links' && <LinkIcon size={12} />}
-                              {block.type} BLOCK
+                              {blockLabel(block)}
                             </span>
                             <button
                               type="button"
@@ -561,49 +561,20 @@ export default function EditorModal({
                             </button>
                           </div>
 
-                          {/* Block Fields rendering conditionally based on type */}
-                          {block.type === 'paragraph' && (
-                            <div className="space-y-2">
-                              <textarea
-                                value={block.textEn || ''}
-                                onChange={(e) => updateBlock(bIdx, { textEn: e.target.value })}
-                                placeholder="Paragraph Content (English)..."
-                                className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white"
-                                rows={2}
-                              />
-                              <textarea
-                                value={block.textAr || ''}
-                                onChange={(e) => updateBlock(bIdx, { textAr: e.target.value })}
-                                placeholder="محتوى الفقرة باللغة العربية..."
-                                className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white text-right"
-                                rows={2}
-                              />
-                            </div>
-                          )}
-
-                          {block.type === 'callout' && (
-                            <div className="space-y-2">
-                              <textarea
-                                value={block.textEn || ''}
-                                onChange={(e) => updateBlock(bIdx, { textEn: e.target.value })}
-                                placeholder="Callout Tip (English)..."
-                                className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white"
-                                rows={2}
-                              />
-                              <textarea
-                                value={block.textAr || ''}
-                                onChange={(e) => updateBlock(bIdx, { textAr: e.target.value })}
-                                placeholder="ملاحظة ملفتة للانتباه للمتعلم (بالعربية)..."
-                                className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white text-right"
-                                rows={2}
-                              />
-                            </div>
+                          {block.type === 'markdown' && (
+                            <MarkdownEditorField
+                              contentEn={block.contentEn ?? ''}
+                              contentAr={block.contentAr ?? ''}
+                              onChangeEn={(value) => updateBlock(bIdx, { contentEn: value })}
+                              onChangeAr={(value) => updateBlock(bIdx, { contentAr: value })}
+                              language={language}
+                            />
                           )}
 
                           {block.type === 'code' && (
                             <div className="space-y-2">
                               <div className="flex justify-between items-center bg-[#252525] p-1.5 rounded border border-[#2F2F2F]">
-                                <span className="text-xs text-[#9B9B9B] font-mono pl-1">Syntax highlighter Language:</span>
+                                <span className="text-xs text-[#9B9B9B] font-mono pl-1">Language:</span>
                                 <select
                                   value={block.language || 'typescript'}
                                   onChange={(e) => updateBlock(bIdx, { language: e.target.value })}
@@ -632,7 +603,9 @@ export default function EditorModal({
 
                           {block.type === 'links' && (
                             <div className="space-y-3">
-                              <p className="text-xs text-[#9B9B9B] font-semibold">{isAr ? 'إدراج روابط ومراجع:' : 'Resource references:'}</p>
+                              <p className="text-xs text-[#9B9B9B] font-semibold">
+                                {isAr ? 'إدراج روابط ومراجع:' : 'Resource references:'}
+                              </p>
                               <div className="space-y-3 pl-2 border-l-2 border-[#3E7B5D]/40">
                                 {block.links?.map((lnk, lIdx) => (
                                   <div key={lnk.id} className="p-3 bg-[#252525] border border-[#2F2F2F] rounded space-y-2 relative group-links">
@@ -672,7 +645,7 @@ export default function EditorModal({
                                       />
                                       <select
                                         value={lnk.type}
-                                        onChange={(e) => handleLinkUpdate(bIdx, lIdx, { type: e.target.value as any })}
+                                        onChange={(e) => handleLinkUpdate(bIdx, lIdx, { type: e.target.value as ResourceLink['type'] })}
                                         className="bg-[#191919] border border-[#2F2F2F] rounded text-xs p-1 text-white"
                                       >
                                         <option value="docs">Docs</option>
@@ -689,7 +662,7 @@ export default function EditorModal({
                                   className="w-full py-1.5 border border-dashed border-[#2F2F2F] hover:border-[#3E7B5D] text-xs text-[#3E7B5D] rounded transition-all flex items-center justify-center gap-1.5 bg-[#252525]/50 hover:bg-[#252525] cursor-pointer font-bold"
                                 >
                                   <Plus size={12} />
-                                  <span>{isAr ? 'إضافة رابط إضافي للكتلة' : 'Add another link reference'}</span>
+                                  <span>{isAr ? 'إضافة رابط' : 'Add another link'}</span>
                                 </button>
                               </div>
                             </div>
@@ -702,7 +675,6 @@ export default function EditorModal({
               )}
             </div>
 
-            {/* Save bar */}
             <div className="px-6 py-4 border-t border-[#2F2F2F] bg-[#202020] flex items-center justify-between">
               {activeTab === 'meta' ? (
                 <button
@@ -710,7 +682,7 @@ export default function EditorModal({
                   onClick={() => setActiveTab('content')}
                   className="px-4 py-2 bg-[#3E7B5D] hover:bg-[#468969] text-white rounded text-sm font-semibold flex items-center space-x-1 cursor-pointer transition-colors"
                 >
-                  <span>{isAr ? 'التقدم لمحتوى الصفحة ➔' : 'Proceed to page blocks ➔'}</span>
+                  <span>{isAr ? 'التقدم للمحتوى ➔' : 'Proceed to content ➔'}</span>
                 </button>
               ) : (
                 <button
@@ -718,10 +690,10 @@ export default function EditorModal({
                   onClick={() => setActiveTab('meta')}
                   className="px-4 py-2 border border-[#2F2F2F] text-[#9B9B9B] hover:text-white rounded text-sm cursor-pointer transition-colors"
                 >
-                  <span>{isAr ? '➔ العودة للمعلومات الأساسية' : '➔ Return to basic metadata'}</span>
+                  <span>{isAr ? '➔ العودة للمعلومات الأساسية' : '➔ Return to metadata'}</span>
                 </button>
               )}
-              
+
               <div className="flex space-x-2 space-x-reverse">
                 <button
                   type="button"
@@ -734,7 +706,7 @@ export default function EditorModal({
                   type="submit"
                   className="px-4 py-2 bg-[#3E7B5D] hover:bg-[#468969] text-white rounded text-sm font-semibold cursor-pointer transition-colors"
                 >
-                  {isAr ? 'حفظ الصفحة وكل كتلها' : 'Persist Wiki Page'}
+                  {isAr ? 'حفظ الصفحة' : 'Save Page'}
                 </button>
               </div>
             </div>

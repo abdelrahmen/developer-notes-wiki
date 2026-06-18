@@ -34,10 +34,146 @@ html, body {
   background: #454545;
 }
 
-/* Markdown styling additions */
+/* Markdown content rendering */
 .markdown-body {
-  line-height: 1.625;
+  line-height: 1.7;
+  color: #E3E3E3;
+  font-size: 0.9375rem;
 }
+
+.markdown-body-compact {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.markdown-body :where(h1, h2, h3, h4) {
+  color: #fff;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.markdown-body h1 { font-size: 1.75rem; }
+.markdown-body h2 {
+  font-size: 1.35rem;
+  border-bottom: 1px solid #2F2F2F;
+  padding-bottom: 0.35em;
+}
+.markdown-body h3 { font-size: 1.125rem; }
+.markdown-body h4 { font-size: 1rem; color: #CBD5E1; }
+
+.markdown-body :where(p, ul, ol, blockquote, pre, table) {
+  margin: 0.75em 0;
+}
+
+.markdown-body :where(strong, b) { color: #fff; font-weight: 600; }
+.markdown-body :where(em, i) { color: #CBD5E1; }
+
+.markdown-body a {
+  color: #7CB8A0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown-body a:hover { color: #9DD4BA; }
+
+.markdown-body :where(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+.markdown-body li { margin: 0.25em 0; }
+
+.markdown-body blockquote {
+  border-inline-start: 3px solid #555;
+  padding-inline-start: 1em;
+  color: #9B9B9B;
+  font-style: italic;
+}
+
+.markdown-body :where(code):not(pre code) {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: #252525;
+  border: 1px solid #2F2F2F;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: #CBD5E1;
+}
+
+.markdown-body pre {
+  background: #191919;
+  border: 1px solid #2F2F2F;
+  border-radius: 6px;
+  padding: 1em;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: #CBD5E1;
+}
+
+.markdown-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.markdown-body :where(th, td) {
+  border: 1px solid #2F2F2F;
+  padding: 0.5em 0.75em;
+  text-align: start;
+}
+
+.markdown-body th {
+  background: #252525;
+  color: #fff;
+  font-weight: 600;
+}
+
+.markdown-body tr:nth-child(even) td {
+  background: #202020;
+}
+
+.markdown-body img {
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid #2F2F2F;
+}
+
+.wiki-callout {
+  border: 1px solid #2F2F2F;
+  border-radius: 8px;
+  padding: 0.875em 1em;
+  margin: 1em 0;
+  background: #252525;
+}
+
+.wiki-callout-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5em;
+}
+
+.wiki-callout-body > :first-child { margin-top: 0; }
+.wiki-callout-body > :last-child { margin-bottom: 0; }
+
+.wiki-callout-note { border-inline-start: 4px solid #6B9BD1; }
+.wiki-callout-note .wiki-callout-label { color: #6B9BD1; }
+
+.wiki-callout-warning { border-inline-start: 4px solid #D4A054; }
+.wiki-callout-warning .wiki-callout-label { color: #D4A054; }
+
+.wiki-callout-tip { border-inline-start: 4px solid #3E7B5D; }
+.wiki-callout-tip .wiki-callout-label { color: #3E7B5D; }
+
+.wiki-callout-important { border-inline-start: 4px solid #B87FD4; }
+.wiki-callout-important .wiki-callout-label { color: #B87FD4; }
 
 input:focus, textarea:focus, select:focus {
   outline: none;

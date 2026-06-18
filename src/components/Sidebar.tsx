@@ -135,12 +135,16 @@ export default function Sidebar({
 
     // Search blocks (code snippets, titles, callouts)
     const blockMatch = page.blocks.some(block => {
-      const bTextEn = block.textEn?.toLowerCase() || '';
-      const bTextAr = block.textAr || '';
-      const bTitleEn = block.titleEn?.toLowerCase() || '';
-      const bTitleAr = block.titleAr || '';
+      const contentEn = block.contentEn?.toLowerCase() || '';
+      const contentAr = block.contentAr || '';
       const bCode = block.code?.toLowerCase() || '';
-      return bTextEn.includes(q) || bTextAr.includes(q) || bTitleEn.includes(q) || bTitleAr.includes(q) || bCode.includes(q);
+      const linkMatch = block.links?.some(
+        (lnk) =>
+          lnk.labelEn.toLowerCase().includes(q) ||
+          lnk.labelAr.includes(q) ||
+          lnk.url.toLowerCase().includes(q)
+      );
+      return contentEn.includes(q) || contentAr.includes(q) || bCode.includes(q) || linkMatch;
     });
 
     return titleMatch || blockMatch;
