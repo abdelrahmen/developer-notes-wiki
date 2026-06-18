@@ -54,9 +54,7 @@ export const INITIAL_PAGES: TopicPage[] = [
     titleEn: 'Click-Based Multilevel Dropdowns',
     titleAr: 'القوائم المنسدلة متعددة المستويات بالنقر',
     icon: '🖱️',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'Hover-triggered submenus are highly fragile on mobile screens and suffer from pointer jitter on desktop. Implementing a state-driven, click-based multilevel dropdown with outside click clearance guarantees a robust responsive experience.',
-    personalClarificationAr: 'القوائم الفرعية التي يتم تفعيلها بمرور مؤشر الفأرة (Hover) تكون هشة وتصعب الحركة وتحديد الخيارات على الهواتف والأجهزة اللوحية، ومن الشائع هروب الفأرة وإغلاقها خطأً. تصميم قائمة تفاعلية متعددة مستويات بالنقر مع مستمع حدث الضغط للخارج يعزز فاعلية واجهتك.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'cd-h1',
@@ -72,11 +70,9 @@ export const INITIAL_PAGES: TopicPage[] = [
       },
       {
         id: 'cd-def',
-        type: 'definition',
-        titleEn: 'Outside Click Listener Pattern',
-        titleAr: 'نمط تتبع النقرات الخارجية',
-        textEn: 'An industry-standard technique in React utilizing useRef to link a container, adding DOM click listeners in a useEffect callback, and comparing if event.target lands inside container.current to trigger menu teardowns.',
-        textAr: 'تقنية تصميمية يتم فيها ربط الكائن الحاوي للأداة بـ useRef، وتعيين مستمع نقرات برأس الصفحة بالمتصفح، وموازنة ما إن كان الحدث واقعاً خارج أركان العنصر لتسريح الحالات وإغلاق الأزرار المنسدلة.'
+        type: 'callout',
+        textEn: 'Outside Click Listener Pattern: An industry-standard technique in React utilizing useRef to link a container, adding DOM click listeners in a useEffect callback, and comparing if event.target lands inside container.current to trigger menu teardowns.',
+        textAr: 'نمط تتبع النقرات الخارجية: تقنية تصميمية يتم فيها ربط الكائن الحاوي للأداة بـ useRef، وتعيين مستمع نقرات برأس الصفحة بالمتصفح، وموازنة ما إن كان الحدث واقعاً خارج أركان العنصر لتسريح الحالات وإغلاق الأزرار المنسدلة.'
       },
       {
         id: 'cd-code',
@@ -174,9 +170,7 @@ export function MultilevelDropdown() {
     titleEn: 'React Render & State Mechanics',
     titleAr: 'ميكانيكية التصيير والحالة في ريأكت',
     icon: '⚛️',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'State in React is not updated synchronously. When calling state updates, React batches multiple updates together inside a microtask for optimal performance. Crucially, a common pitfall is attempting to read the updated state value immediately in the next line of code, which always yields the old value.',
-    personalClarificationAr: 'لا يتم تحديث الحالة في ريأكت بشكل متزامن. عند استدعاء دالة التحديث، يقوم ريأكت بتجميع تحديثات متعددة معاً داخل مهمة صغيرة (microtask) لتحقيق أداء مثالي. من الأخطاء كثرة الوقوع فيها هي محاولة قراءة قيمة الحالة المحدثة في السطر التالي مباشرة، والتي ستعطي دائماً القيمة القديمة.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'rs-h1',
@@ -192,11 +186,9 @@ export function MultilevelDropdown() {
       },
       {
         id: 'rs-def-reconcile',
-        type: 'definition',
-        titleEn: 'Reconciliation (Fiber)',
-        titleAr: 'المصالحة والتوفيق (المعمارية ليفية)',
-        textEn: 'The reconciliation algorithm is React\'s virtual diffing process that allows it to identify changed segments of the DOM. Fiber is the backend engine rewrite in React 16 that introduces incremental rendering, meaning React can split rendering work into chunks and spread it over multiple frames to prevent main-thread blockage.',
-        textAr: 'خوارزمية المصالحة هي عملية المقارنة الافتراضية التي يتبعها ريأكت للتعرف على الأجزاء المتغيرة من شجرة DOM. معمارية فايبر (Fiber) هي إعادة بناء للمحرك الداخلي في ريأكت 16 تتيح عملية التصيير التراكمي والمجزأ، مما يسمح بتقسيم مهام التصيير على عدة إطارات دون حجب خيط العمل الرئيسي للمتصفح.'
+        type: 'callout',
+        textEn: 'Reconciliation (Fiber): The reconciliation algorithm is React\'s virtual diffing process that allows it to identify changed segments of the DOM. Fiber is the backend engine rewrite in React 16 that introduces incremental rendering, meaning React can split rendering work into chunks and spread it over multiple frames to prevent main-thread blockage.',
+        textAr: 'المصالحة والتوفيق (المعمارية ليفية): خوارزمية المصالحة هي عملية المقارنة الافتراضية التي يتبعها ريأكت للتعرف على الأجزاء المتغيرة من شجرة DOM. معمارية فايبر (Fiber) هي إعادة بناء للمحرك الداخلي في ريأكت 16 تتيح عملية التصيير التراكمي والمجزأ، مما يسمح بتقسيم مهام التصيير على عدة إطارات دون حجب خيط العمل الرئيسي للمتصفح.'
       },
       {
         id: 'rs-code1',
@@ -260,9 +252,7 @@ export function Counter() {
     titleEn: 'Advanced TypeScript Types & Utility Maps',
     titleAr: 'أنواع تايب سكريبت المتقدمة والخرائط المساعدة',
     icon: '🛡️',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'TypeScript is powerful because its type system is Turing-complete. We should avoid any "any" and instead use Generic limits, Conditional Types, and Mapped assertions. Moving from defensive raw JS to strict TS types makes refactoring giant codebases absolute bliss.',
-    personalClarificationAr: 'تكمن قوة تايب سكريبت في أن نظام الأنواع الخاص بها مكتمل حاسوبياً وطورياً (Turing-complete). يجب أن نتجنب النوع "any" تماماً في مشاريعنا، وبدلاً من ذلك نعتمد على الأنواع المحدودة عمومياً (Generics) والشروط (Conditional Types) والخرائط (Mapped). يسهل هذا الانتقال هندسة وإعادة صيانة الشيفرات الضخمة بكفاءة.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'ts-h1',
@@ -278,11 +268,9 @@ export function Counter() {
       },
       {
         id: 'ts-def-utility',
-        type: 'definition',
-        titleEn: 'Mapped Types',
-        titleAr: 'الأنواع المخططة (Mapped Types)',
-        textEn: 'Mapped types allow taking an existing model and transforming its keys to produce a new structure. Useful examples include converting all fields to read-only, prefixing field names dynamically, or stripping out specific properties via key remapping.',
-        textAr: 'تسمح الأنواع المخططة بتحويل مفاتيح نموذج موجود مسبقاً لإنشاء واجهة وهيكل جديد تماماً. تتضمن الأمثلة المفيدة تحويل كافة الحقول لتكون للقراءة فقط (Read-only)، أو إلحاق بادئة بأسماء الحقول ديناميكياً، أو استبعاد خصائص محددة تماماً.'
+        type: 'callout',
+        textEn: 'Mapped Types: Mapped types allow taking an existing model and transforming its keys to produce a new structure. Useful examples include converting all fields to read-only, prefixing field names dynamically, or stripping out specific properties via key remapping.',
+        textAr: 'الأنواع المخططة (Mapped Types): تسمح الأنواع المخططة بتحويل مفاتيح نموذج موجود مسبقاً لإنشاء واجهة وهيكل جديد تماماً. تتضمن الأمثلة المفيدة تحويل كافة الحقول لتكون للقراءة فقط (Read-only)، أو إلحاق بادئة بأسماء الحقول ديناميكياً، أو استبعاد خصائص محددة تماماً.'
       },
       {
         id: 'ts-code1',
@@ -340,9 +328,7 @@ const validColor: HexColor = "#f3f4f6";
     titleEn: 'REST vs GraphQL Architecture Paradigm',
     titleAr: 'مقارنة معمارية واجهات REST مع خطوط GraphQL',
     icon: '🔌',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'REST is robust and fits perfect for simple RESTful CRUD, but easily creates over/under-fetching problems. GraphQL allows client-defined queries but shifts resource monitoring overhead and query complexity to the server. For most setups, public APIs use REST while dynamic dashboard graphs utilize GraphQL.',
-    personalClarificationAr: 'بنظام REST، تبدو الهيكلة واضحة ومثالية للأداء البسيط، لكن كثيراً ما تتسبب في جلب بيانات زائدة أو ناقصة عن الحاجة. في المقابل، يتيح GraphQL للعميل تحديد هيكلية البيانات المطلوبة بدقة، لكنه يحمل الخادم عبئ مراقبة استهلاك الموارد وحساب تكلفة الاستعلامات الزائدة.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'api-h1',
@@ -358,11 +344,9 @@ const validColor: HexColor = "#f3f4f6";
       },
       {
         id: 'api-def-gql',
-        type: 'definition',
-        titleEn: 'GraphQL Schema Definition (SDL)',
-        titleAr: 'لغة تعريف المخططات في GraphQL',
-        textEn: 'The Schema Definition Language (SDL) operates as a strict contract between client and server. No query can be completed if it strays from the typed schemas, giving backend developers absolute clarity on system consumption of endpoints.',
-        textAr: 'تعتبر لغة تعريف المخططات (SDL) عقداً صارماً لتمثيل جلب الكائنات بين العميل والخادم. لا يمكن معالجة أو إنهاء أي استعلام إذا انحرف عما تم تعريفه مسبقاً في هيكل البيانات، مما يعطي مطوري الأنظمة الخلفية تحكماً كاملاً بالبيانات المتداولة.'
+        type: 'callout',
+        textEn: 'GraphQL Schema Definition (SDL): The Schema Definition Language (SDL) operates as a strict contract between client and server. No query can be completed if it strays from the typed schemas, giving backend developers absolute clarity on system consumption of endpoints.',
+        textAr: 'لغة تعريف المخططات في GraphQL: تعتبر لغة تعريف المخططات (SDL) عقداً صارماً لتمثيل جلب الكائنات بين العميل والخادم. لا يمكن معالجة أو إنهاء أي استعلام إذا انحرف عما تم تعريفه مسبقاً في هيكل البيانات، مما يعطي مطوري الأنظمة الخلفية تحكماً كاملاً بالبيانات المتداولة.'
       },
       {
         id: 'api-code1',
@@ -422,9 +406,7 @@ const resolvers = {
     titleEn: 'Database Indexing Mechanics & B-Trees',
     titleAr: 'ميكانيكا فهارس قواعد البيانات وهياكل B-Tree',
     icon: '🗄️',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'Indexes make read operations incredibly fast, but we pay for them during every write or insert! In relational databases like PostgreSQL, B-Tree indexes keep keys highly balanced and sorted, ensuring we search elements in O(log N) rather than executing slow full-table scans of O(N).',
-    personalClarificationAr: 'تجعل الفهارس عمليات القراءة فائقة السرعة، ولكننا ندفع ثمنها في كل عملية كتابة أو إدراج جديدة في الجدول! في قواعد البيانات العلاقية مثل PostgreSQL، تحافظ فهارس B-Tree على توازن المفاتيح وترتيبها، مما يضمن البحث عن العناصر بتعقيد O(log N) بدلاً من عمليات مسح الجداول الكاملة الطويلة بـ O(N).',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'db-h1',
@@ -440,11 +422,9 @@ const resolvers = {
       },
       {
         id: 'db-def-bt',
-        type: 'definition',
-        titleEn: 'Clustered vs Non-Clustered Indexes',
-        titleAr: 'الفهارس المتجمعة (Clustered) وغير المتجمعة',
-        textEn: 'A Clustered Index dictates the physical order in which data rows are written, thus only one can exist per table (usually the Primary Key). A Non-Clustered index stores a separate sorted structure pointing back to the storage location of the rows.',
-        textAr: 'يحدد الفهرس المتجمع الترتيب الفيزيائي الفعلي لصفوف البيانات في القرص الصلب، لذا يمكن وجود فهرس متجمع واحد فقط للجدول (في العادة هو المفتاح الرئيسي). الفهرس غير المتجمع يخزن شجرة منفصلة تشير إلى موقع الصفوف الحقيقي في القرص.'
+        type: 'callout',
+        textEn: 'Clustered vs Non-Clustered Indexes: A Clustered Index dictates the physical order in which data rows are written, thus only one can exist per table (usually the Primary Key). A Non-Clustered index stores a separate sorted structure pointing back to the storage location of the rows.',
+        textAr: 'الفهارس المتجمعة (Clustered) وغير المتجمعة: يحدد الفهرس المتجمع الترتيب الفيزيائي الفعلي لصفوف البيانات في القرص الصلب، لذا يمكن وجود فهرس متجمع واحد فقط للجدول (في العادة هو المفتاح الرئيسي). الفهرس غير المتجمع يخزن شجرة منفصلة تشير إلى موقع الصفوف الحقيقي في القرص.'
       },
       {
         id: 'db-code1',
@@ -493,9 +473,7 @@ ORDER BY created_at DESC;
     titleEn: 'Docker Containerization Mechanics',
     titleAr: 'ميكانيكا وبنية الحاويات باستخدام دوكر',
     icon: '🐳',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'Docker is not a full Virtual Machine. It runs directly on the host kernel using kernel features like Namespaces and Control Groups. Crucially, we must keep images extremely slim using multi-stage builds and Alpine or Distroless bases.',
-    personalClarificationAr: 'دوكر ليس نظام تشغيل تخيلي كامل (Virtual Machine). يعمل دوكر مباشرة فوق نواة نظام التشغيل المضيف مستغلاً ميزات Kernel مثل Namespaces (لعزل الموارد) و Control Groups (لتحديد السعة). من الضروري الحفاظ على أحجام الصور بالغة الصغر عن طريق البناء متعدد المراحل.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'dk-h1',
@@ -511,11 +489,9 @@ ORDER BY created_at DESC;
       },
       {
         id: 'dk-def-stages',
-        type: 'definition',
-        titleEn: 'Multi-Stage Builds',
-        titleAr: 'البناء متعدد المراحل (Multi-Stage Builds)',
-        textEn: 'A Dockerfile technique where multiple FROM statements are declared. Build dependencies are kept inside temporary compiler layers, while the final small container only receives compiled assets and runtime binaries.',
-        textAr: 'تقنية بملف Dockerfile يتم فيها استخدام أكثر من إعلان FROM. يتم عزل أدوات البناء وتجميع الحزم الضخمة بداخل بيئات مؤقتة، بينما تشحن البيئة النهائية الصغيرة بالملفات الناتجة فقط، مما يوفر مساحات شاسعة بالذاكرة.'
+        type: 'callout',
+        textEn: 'Multi-Stage Builds: A Dockerfile technique where multiple FROM statements are declared. Build dependencies are kept inside temporary compiler layers, while the final small container only receives compiled assets and runtime binaries.',
+        textAr: 'البناء متعدد المراحل (Multi-Stage Builds): تقنية بملف Dockerfile يتم فيها استخدام أكثر من إعلان FROM. يتم عزل أدوات البناء وتجميع الحزم الضخمة بداخل بيئات مؤقتة، بينما تشحن البيئة النهائية الصغيرة بالملفات الناتجة فقط، مما يوفر مساحات شاسعة بالذاكرة.'
       },
       {
         id: 'dk-code1',
@@ -568,9 +544,7 @@ CMD ["node", "dist/server.js"]`
     titleEn: 'CI/CD Build Automation Pipelines',
     titleAr: 'أتمتة خطوط التكامل والنشر المستمر (CI/CD)',
     icon: '🔄',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'A high-performing development workflow means never humanly touching servers for deployment. The workflow should automatically trigger unit tests, static code security analysis, image builds, and canary server rolling updates upon every branch pull request merge.',
-    personalClarificationAr: 'تعني بيئة العمل البرمجية المثالية ألا يلمس بشري الخوادم لتثبيت برمجيات يدوياً. يجب تعيين قواعد تقوم تلقائياً بتشغيل اختبارات الكفاءة وفحص الثغرات الأمنية للشيفرة وبناء الحاويات وثم النشر الآمن التدريجي بمجرد دمج طلب تظافر الفروع.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'ci-h1',
@@ -586,11 +560,9 @@ CMD ["node", "dist/server.js"]`
       },
       {
         id: 'ci-def-gates',
-        type: 'definition',
-        titleEn: 'Build Security Gate (SAST)',
-        titleAr: 'بوابات الفحص الأمني الساكن (SAST)',
-        textEn: 'Static Application Security Testing processes check the source files before build compiling to detect leaked secrets, vulnerable dependencies, and outdated package definitions.',
-        textAr: 'عمليات الفحص الأمني الثابت للتطبيقات تقوم بتحليل الشيفرة المصدرية قبل بناء الملف النهائي للكشف عن أي مفاتيح تشفير مسربة، أو حزم برمجية ذات ثغرات معروفة.'
+        type: 'callout',
+        textEn: 'Build Security Gate (SAST): Static Application Security Testing processes check the source files before build compiling to detect leaked secrets, vulnerable dependencies, and outdated package definitions.',
+        textAr: 'بوابات الفحص الأمني الساكن (SAST): عمليات الفحص الأمني الثابت للتطبيقات تقوم بتحليل الشيفرة المصدرية قبل بناء الملف النهائي للكشف عن أي مفاتيح تشفير مسربة، أو حزم برمجية ذات ثغرات معروفة.'
       },
       {
         id: 'ci-code1',
@@ -646,9 +618,7 @@ jobs:
     titleEn: 'Database Sharding & Replication',
     titleAr: 'تجزئة وتكرار قواعد البيانات الموزعة',
     icon: '💾',
-    lastUpdated: '2026-05-31',
-    personalClarificationEn: 'Replication duplicates dataset copies across several cluster nodes to ensure High Availability (HA) and read scalability. Sharding horizontally partitions a single table based on a shard key across completely disjoint master systems to scale memory write operations.',
-    personalClarificationAr: 'يقوم التكرار (Replication) بمضاعفة نسخ البيانات عبر خوادم متعددة لضمان استمرارية الخدمة وسهولة توسيع عمليات القراءة. بينما تقوم عملية التجزئة (Sharding) بتقسيم الجداول الكبيرة جغرافياً أو رقمياً بناءً على مفتاح التجزئة لتوزيع حمل عمليات الكتابة المستمرة.',
+    lastUpdated: '2026-05-31',
     blocks: [
       {
         id: 'shard-h1',

@@ -132,11 +132,8 @@ export default function Sidebar({
     
     // Search titles
     const titleMatch = page.titleEn.toLowerCase().includes(q) || page.titleAr.includes(q);
-    
-    // Search personal notes
-    const noteMatch = page.personalClarificationEn.toLowerCase().includes(q) || page.personalClarificationAr.includes(q);
-    
-    // Search blocks (code snippets, titles, definitions)
+
+    // Search blocks (code snippets, titles, callouts)
     const blockMatch = page.blocks.some(block => {
       const bTextEn = block.textEn?.toLowerCase() || '';
       const bTextAr = block.textAr || '';
@@ -146,7 +143,7 @@ export default function Sidebar({
       return bTextEn.includes(q) || bTextAr.includes(q) || bTitleEn.includes(q) || bTitleAr.includes(q) || bCode.includes(q);
     });
 
-    return titleMatch || noteMatch || blockMatch;
+    return titleMatch || blockMatch;
   });
 
   const renderCategoryRecursive = (cat: Category, level: number = 0): React.ReactNode => {

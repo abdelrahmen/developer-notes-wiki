@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Category, TopicPage, ContentBlock, ResourceLink, Language } from '../types';
-import { X, Plus, Trash2, Code, AlignLeft, Info, Link as LinkIcon, BookOpen, GripVertical } from 'lucide-react';
+import { X, Plus, Trash2, Code, AlignLeft, Info, Link as LinkIcon, GripVertical } from 'lucide-react';
 
 interface EditorModalProps {
   isOpen: boolean;
@@ -43,8 +43,6 @@ export default function EditorModal({
   const [pageTitleEn, setPageTitleEn] = useState('');
   const [pageTitleAr, setPageTitleAr] = useState('');
   const [pageIcon, setPageIcon] = useState('📄');
-  const [pageDetailsEn, setPageDetailsEn] = useState('');
-  const [pageDetailsAr, setPageDetailsAr] = useState('');
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
 
   // Local state for dragging blocks
@@ -78,14 +76,10 @@ export default function EditorModal({
         setPageTitleEn('');
         setPageTitleAr('');
         setPageIcon('🚀');
-        setPageDetailsEn('');
-        setPageDetailsAr('');
         setBlocks([
           {
-            id: 'block-def-' + Date.now(),
-            type: 'definition',
-            titleEn: 'Definition Label',
-            titleAr: 'تعريف مصطلح',
+            id: 'block-p-' + Date.now(),
+            type: 'paragraph',
             textEn: '',
             textAr: ''
           },
@@ -102,8 +96,6 @@ export default function EditorModal({
         setPageTitleEn(initialPageData.titleEn);
         setPageTitleAr(initialPageData.titleAr);
         setPageIcon(initialPageData.icon);
-        setPageDetailsEn(initialPageData.personalClarificationEn);
-        setPageDetailsAr(initialPageData.personalClarificationAr);
         setBlocks(initialPageData.blocks || []);
       }
     }
@@ -113,16 +105,13 @@ export default function EditorModal({
 
   const isAr = language === 'ar';
 
-  const addBlock = (blockType: 'paragraph' | 'definition' | 'code' | 'callout' | 'links') => {
+  const addBlock = (blockType: 'paragraph' | 'code' | 'callout' | 'links') => {
     const id = 'block-' + Date.now() + '-' + Math.floor(Math.random() * 100);
     let newBlock: ContentBlock;
 
     switch (blockType) {
       case 'paragraph':
         newBlock = { id, type: 'paragraph', textEn: '', textAr: '' };
-        break;
-      case 'definition':
-        newBlock = { id, type: 'definition', titleEn: 'Concept Definition', titleAr: 'تعريف المفهوم', textEn: '', textAr: '' };
         break;
       case 'code':
         newBlock = { id, type: 'code', language: 'typescript', code: '// Enter script here' };
@@ -227,8 +216,6 @@ export default function EditorModal({
       titleAr: pageTitleAr.trim(),
       icon: pageIcon.trim() || '📄',
       lastUpdated: new Date().toISOString().split('T')[0],
-      personalClarificationEn: pageDetailsEn.trim(),
-      personalClarificationAr: pageDetailsAr.trim(),
       blocks
     });
     onClose();
@@ -455,32 +442,6 @@ export default function EditorModal({
                       />
                     </div>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#9B9B9B] mb-1">
-                      Personal Clarifications (English Summary)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={pageDetailsEn}
-                      onChange={(e) => setPageDetailsEn(e.target.value)}
-                      className="w-full bg-[#252525] border border-[#2F2F2F] rounded px-3 py-2 text-white text-sm"
-                      placeholder="Add personal thoughts, project anecdotes, developer takeaways, or summaries in English..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#9B9B9B] mb-1 text-right">
-                      توضيحات وملاحظات شخصية (باللغة العربية)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={pageDetailsAr}
-                      onChange={(e) => setPageDetailsAr(e.target.value)}
-                      className="w-full bg-[#252525] border border-[#2F2F2F] rounded px-3 py-2 text-white text-sm text-right"
-                      placeholder="أضف تجربتك الواقعية، الدروس المستخلصة، أو لمحات تفصيلية عن تفعيل الموضوع بالعربية..."
-                    />
-                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -496,14 +457,6 @@ export default function EditorModal({
                     >
                       <AlignLeft size={13} />
                       <span>{isAr ? 'بارغراف' : 'Paragraph'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addBlock('definition')}
-                      className="flex items-center space-x-1 border border-[#2F2F2F] bg-[#252525] hover:bg-[#2F2F2F] text-xs px-2.5 py-1 rounded text-gray-300 cursor-pointer transition-colors"
-                    >
-                      <BookOpen size={13} />
-                      <span>{isAr ? 'تعريف' : 'Definition'}</span>
                     </button>
                     <button
                       type="button"
@@ -594,7 +547,6 @@ export default function EditorModal({
                                 <GripVertical size={13} strokeWidth={2.5} />
                               </div>
                               {block.type === 'paragraph' && <AlignLeft size={12} />}
-                              {block.type === 'definition' && <BookOpen size={12} />}
                               {block.type === 'code' && <Code size={12} />}
                               {block.type === 'callout' && <Info size={12} />}
                               {block.type === 'links' && <LinkIcon size={12} />}
@@ -624,41 +576,6 @@ export default function EditorModal({
                                 onChange={(e) => updateBlock(bIdx, { textAr: e.target.value })}
                                 placeholder="محتوى الفقرة باللغة العربية..."
                                 className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white text-right"
-                                rows={2}
-                              />
-                            </div>
-                          )}
-
-                          {block.type === 'definition' && (
-                            <div className="space-y-2">
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  type="text"
-                                  value={block.titleEn || ''}
-                                  onChange={(e) => updateBlock(bIdx, { titleEn: e.target.value })}
-                                  placeholder="Definition Term (EN)"
-                                  className="bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white"
-                                />
-                                <input
-                                  type="text"
-                                  value={block.titleAr || ''}
-                                  onChange={(e) => updateBlock(bIdx, { titleAr: e.target.value })}
-                                  placeholder="المصطلح في قالب التعريف (AR)"
-                                  className="bg-[#252525] border border-[#2F2F2F] rounded p-2 text-sm text-white text-right"
-                                />
-                              </div>
-                              <textarea
-                                value={block.textEn || ''}
-                                onChange={(e) => updateBlock(bIdx, { textEn: e.target.value })}
-                                placeholder="Definition explain (English)..."
-                                className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-xs text-white"
-                                rows={2}
-                              />
-                              <textarea
-                                value={block.textAr || ''}
-                                onChange={(e) => updateBlock(bIdx, { textAr: e.target.value })}
-                                placeholder="شرح التعريف الكامل والتفصيلي (بالعربية)..."
-                                className="w-full bg-[#252525] border border-[#2F2F2F] rounded p-2 text-xs text-white text-right"
                                 rows={2}
                               />
                             </div>

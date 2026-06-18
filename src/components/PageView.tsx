@@ -10,11 +10,9 @@ import {
   Circle, 
   Clock, 
   ExternalLink, 
-  BookOpen, 
   Code, 
   Copy, 
   Check, 
-  User, 
   Edit3, 
   FileText, 
   Trash2, 
@@ -120,17 +118,12 @@ export default function PageView({
   const copyMarkdownAsText = () => {
     if (!page) return;
     let md = `# ${page.titleEn}\n\n`;
-    if (page.personalClarificationEn) {
-      md += `> ${page.personalClarificationEn}\n\n`;
-    }
     if (page.blocks) {
       page.blocks.forEach(block => {
         if (block.type === 'heading') {
           md += `## ${block.titleEn || ''}\n\n`;
         } else if (block.type === 'paragraph') {
           md += `${block.textEn || ''}\n\n`;
-        } else if (block.type === 'definition') {
-          md += `**Definition - ${block.titleEn || ''}**\n${block.textEn || ''}\n\n`;
         } else if (block.type === 'code') {
           md += `\`\`\`${block.language || 'typescript'}\n${block.code || ''}\n\`\`\`\n\n`;
         } else if (block.type === 'callout') {
@@ -549,22 +542,7 @@ export default function PageView({
           </div>
         </div>
 
-        {/* 1. Personal Clarification Box (Italicized offset bordered card) */}
-        {viewStyle !== 'zen' && ((isAr ? page.personalClarificationAr : page.personalClarificationEn)) && (
-          <div className="mt-8 p-5 bg-[#252525] border-l-4 border-[#9B9B9B] rounded-r rounded-l-none shadow-inner space-y-2">
-            <div className="flex items-center space-x-2 space-x-reverse text-[#E3E3E3] font-bold text-xs uppercase tracking-wider">
-              <div className="p-1 rounded bg-[#2F2F2F]">
-                <User size={13} />
-              </div>
-              <span>{isAr ? 'توضيحات وملاحظات شخصية' : 'Personal Clarifications'}</span>
-            </div>
-            <p className="text-sm text-[#E3E3E3]/95 leading-relaxed italic pr-1 whitespace-pre-wrap">
-              " {isAr ? page.personalClarificationAr : page.personalClarificationEn} "
-            </p>
-          </div>
-        )}
-
-        {/* 2. Structured Content blocks */}
+        {/* Structured Content blocks */}
         <div className={`mt-10 ${viewStyle === 'compact' ? 'space-y-4' : 'space-y-8'}`}>
           {page.blocks?.map((block) => {
             switch (block.type) {
@@ -591,26 +569,6 @@ export default function PageView({
                   >
                     {isAr ? block.textAr : block.textEn}
                   </p>
-                );
-
-              case 'definition':
-                return (
-                  <div 
-                    key={block.id} 
-                    className="p-4 bg-[#202020] border border-[#2F2F2F] rounded flex items-start space-x-3.5 space-x-reverse"
-                  >
-                    <div className="p-2 bg-[#252525] text-[#E3E3E3] rounded self-start">
-                      <BookOpen size={16} />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h4 className="text-xs font-bold text-[#E3E3E3] uppercase tracking-wide">
-                        {isAr ? block.titleAr : block.titleEn}
-                      </h4>
-                      <p className="text-xs leading-relaxed text-[#9B9B9B] whitespace-pre-wrap">
-                        {isAr ? block.textAr : block.textEn}
-                      </p>
-                    </div>
-                  </div>
                 );
 
               case 'code':

@@ -21,7 +21,7 @@ export interface ResourceLink {
   type: 'docs' | 'project' | 'link' | 'github';
 }
 
-export type BlockType = 'paragraph' | 'definition' | 'code' | 'callout' | 'links' | 'image' | 'heading';
+export type BlockType = 'paragraph' | 'code' | 'callout' | 'links' | 'image' | 'heading';
 
 export interface ContentBlock {
   id: string;
@@ -55,8 +55,6 @@ export interface TopicPage {
   titleAr: string;
   icon: string; // Emoji e.g., "🚀"
   lastUpdated: string;
-  personalClarificationEn: string;
-  personalClarificationAr: string;
   blocks: ContentBlock[];
 }
 

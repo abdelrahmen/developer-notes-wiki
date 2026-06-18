@@ -4,7 +4,7 @@
  */
 
 import { INITIAL_CATEGORIES, INITIAL_PAGES } from '../data/topics';
-import { Category, Language, SyncConfig, TopicPage, WikiState, WikiSyncPayload } from '../types';
+import { Category, ContentBlock, Language, SyncConfig, TopicPage, WikiState, WikiSyncPayload } from '../types';
 import { parseGistId, parseJsonBinId } from './sync/parseRemoteId';
 
 export const STORAGE_KEYS = {
@@ -23,6 +23,55 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   jsonbin: { apiKey: '', binId: '' },
   gist: { token: '', gistId: '' },
 };
+
+type LegacyContentBlock = {
+  id: string;
+  type: string;
+  textEn?: string;
+  textAr?: string;
+  titleEn?: string;
+  titleAr?: string;
+  code?: string;
+  language?: string;
+  links?: ContentBlock['links'];
+  imageUrl?: string;
+  captionEn?: string;
+  captionAr?: string;
+};
+type LegacyTopicPage = TopicPage & {
+  personalClarificationEn?: string;
+  personalClarificationAr?: string;
+};
+
+function migrateContentBlock(block: LegacyContentBlock): ContentBlock {
+  if (block.type !== 'definition') {
+    return block as ContentBlock;
+  }
+
+  const titleEn = block.titleEn?.trim();
+  const titleAr = block.titleAr?.trim();
+  const textEn = block.textEn?.trim() ?? '';
+  const textAr = block.textAr?.trim() ?? '';
+
+  return {
+    id: block.id,
+    type: 'callout',
+    textEn: titleEn ? `${titleEn}: ${textEn}` : textEn,
+    textAr: titleAr ? `${titleAr}: ${textAr}` : textAr,
+  };
+}
+
+export function normalizePage(page: LegacyTopicPage): TopicPage {
+  const { personalClarificationEn: _en, personalClarificationAr: _ar, ...rest } = page;
+  return {
+    ...rest,
+    blocks: (rest.blocks ?? []).map((block) => migrateContentBlock(block as LegacyContentBlock)),
+  };
+}
+
+function normalizePages(pages: LegacyTopicPage[]): TopicPage[] {
+  return pages.map(normalizePage);
+}
 
 export function loadSyncConfig(): SyncConfig {
   const raw = localStorage.getItem(STORAGE_KEYS.syncConfig);
@@ -114,7 +163,7 @@ export function loadLocalWikiState(): WikiState {
   const savedPages = localStorage.getItem(STORAGE_KEYS.pages);
   if (savedPages) {
     try {
-      pages = JSON.parse(savedPages);
+      pages = normalizePages(JSON.parse(savedPages));
     } catch {
       pages = INITIAL_PAGES;
     }
@@ -166,8 +215,9 @@ export function buildPayloadFromStorage(): WikiSyncPayload {
 }
 
 export function applySyncPayload(payload: WikiSyncPayload): WikiState {
+  const pages = normalizePages(payload.pages as LegacyTopicPage[]);
   localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(payload.categories));
-  localStorage.setItem(STORAGE_KEYS.pages, JSON.stringify(payload.pages));
+  localStorage.setItem(STORAGE_KEYS.pages, JSON.stringify(pages));
   localStorage.setItem(STORAGE_KEYS.completed, JSON.stringify(payload.completedPages));
   localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify(payload.notes));
   localStorage.setItem(STORAGE_KEYS.language, payload.language);
@@ -175,7 +225,7 @@ export function applySyncPayload(payload: WikiSyncPayload): WikiState {
 
   return {
     categories: payload.categories,
-    pages: payload.pages,
+    pages,
     completedPages: payload.completedPages,
     notes: payload.notes,
     language: payload.language,
