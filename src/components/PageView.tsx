@@ -3,20 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { TopicPage, Category, Language, UserProgress } from '../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TopicPage, Category, Language } from '../types';
 import MarkdownContent from './MarkdownContent';
+import InlinePageEditor from './InlinePageEditor';
+import PageMetadataPanel from './PageMetadataPanel';
+import { createMarkdownBlock } from '../lib/pageBlocks';
+import { EditDraftSnapshot, useEditUndo } from '../lib/useEditUndo';
 import { 
   CheckCircle, 
   Circle, 
   Clock, 
   ExternalLink, 
-  Code, 
   Copy, 
   Check, 
-  Edit3, 
   FileText, 
-  Trash2, 
   Save, 
   ChevronRight, 
   ChevronLeft,
@@ -27,7 +28,8 @@ import {
   Search,
   Type,
   Minus,
-  Plus
+  Plus,
+  Settings
 } from 'lucide-react';
 
 const FONT_SCALE_STORAGE_KEY = 'devnotes_font_scale_v1';
@@ -48,11 +50,22 @@ function loadFontScaleIndex(): number {
   return DEFAULT_FONT_SCALE_INDEX;
 }
 
+const EMPTY_EDIT_DRAFT: EditDraftSnapshot = {
+  blocks: [],
+  titleEn: '',
+  titleAr: '',
+  icon: '📄',
+  categoryId: '',
+};
+
 interface PageViewProps {
   page: TopicPage | null;
   category: Category | null;
+  categories: Category[];
   language: Language;
-  onEditPage: (page: TopicPage) => void;
+  onSavePage: (page: TopicPage) => void;
+  autoEditOnMount?: boolean;
+  onAutoEditConsumed?: () => void;
   isCompleted: boolean;
   onToggleComplete: (pageId: string) => void;
   notes: string;
@@ -62,8 +75,11 @@ interface PageViewProps {
 export default function PageView({
   page,
   category,
+  categories,
   language,
-  onEditPage,
+  onSavePage,
+  autoEditOnMount = false,
+  onAutoEditConsumed,
   isCompleted,
   onToggleComplete,
   notes,
@@ -71,8 +87,17 @@ export default function PageView({
 }: PageViewProps) {
   const isAr = language === 'ar';
   const [copiedBlockId, setCopiedBlockId] = useState<string | null>(null);
-  
-  // Local scratchpad notes
+  const [isEditing, setIsEditing] = useState(false);
+  const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+  const { snapshot: editDraft, update: updateEditDraft, undo: undoEditDraft, reset: resetEditDraft, flushPending: flushEditHistory } =
+    useEditUndo(EMPTY_EDIT_DRAFT);
+
+  const draftBlocks = editDraft.blocks;
+  const draftTitleEn = editDraft.titleEn;
+  const draftTitleAr = editDraft.titleAr;
+  const draftIcon = editDraft.icon;
+  const draftCategoryId = editDraft.categoryId;
+
   const [localNotes, setLocalNotes] = useState(notes);
   const [isSaved, setIsSaved] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -107,13 +132,67 @@ export default function PageView({
     localStorage.setItem(FONT_SCALE_STORAGE_KEY, String(fontScaleIndex));
   }, [fontScaleIndex]);
 
-  // Sync state with changing pages
+  const startEditing = useCallback(() => {
+    if (!page) return;
+    resetEditDraft({
+      blocks: page.blocks.length > 0 ? structuredClone(page.blocks) : [createMarkdownBlock()],
+      titleEn: page.titleEn,
+      titleAr: page.titleAr,
+      icon: page.icon,
+      categoryId: page.categoryId,
+    });
+    setIsEditing(true);
+  }, [page, resetEditDraft]);
+
+  const saveEditing = useCallback(() => {
+    if (!page) return;
+    flushEditHistory();
+    onSavePage({
+      ...page,
+      titleEn: editDraft.titleEn.trim() || page.titleEn,
+      titleAr: editDraft.titleAr.trim() || page.titleAr,
+      icon: editDraft.icon.trim() || '📄',
+      categoryId: editDraft.categoryId || page.categoryId,
+      lastUpdated: new Date().toISOString().split('T')[0],
+      blocks: editDraft.blocks,
+    });
+    setIsEditing(false);
+    setToastMessage(isAr ? 'تم حفظ الصفحة!' : 'Page saved!');
+    setTimeout(() => setToastMessage(null), 2500);
+  }, [page, editDraft, flushEditHistory, onSavePage, isAr]);
+
   useEffect(() => {
     setLocalNotes(notes);
     setIsSaved(false);
     setIsMainMenuOpen(false);
     setActiveSubMenu(null);
-  }, [notes, page]);
+    setIsEditing(false);
+    setIsMetadataOpen(false);
+  }, [notes, page?.id]);
+
+  useEffect(() => {
+    if (autoEditOnMount && page) {
+      startEditing();
+      onAutoEditConsumed?.();
+    }
+  }, [autoEditOnMount, page, startEditing, onAutoEditConsumed]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveEditing();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undoEditDraft();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isEditing, saveEditing, undoEditDraft]);
 
   // Copy raw built markdown representation of page blocks
   const copyMarkdownAsText = () => {
@@ -193,13 +272,23 @@ export default function PageView({
   };
 
   const handleNotesKeyDown = (e: React.KeyboardEvent) => {
+    if (isEditing) return;
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       handleNotesSave();
     }
   };
 
-  // Modern procedural abstract gradient based on page ID to give a beautiful dark-notion header banner
+  const displayCategory = isEditing
+    ? categories.find((c) => c.id === draftCategoryId) ?? category
+    : category;
+
+  const displayTitle = isEditing
+    ? (isAr ? draftTitleAr : draftTitleEn)
+    : (isAr ? page.titleAr : page.titleEn);
+
+  const displayIcon = isEditing ? draftIcon : page.icon;
+
   const getBannerGradient = (id: string) => {
     const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const gradients = [
@@ -236,7 +325,7 @@ export default function PageView({
         {/* Floating Emoji bubble */}
         {viewStyle !== 'zen' && (
           <div className="w-24 h-24 rounded-2xl bg-[#191919] border border-[#2F2F2F] flex items-center justify-center text-5xl shadow-xl select-none relative z-10">
-            {page.icon}
+            {displayIcon}
           </div>
         )}
 
@@ -246,7 +335,7 @@ export default function PageView({
           {/* Breadcrumbs pathway */}
           <div className="text-xs text-[#9B9B9B] flex items-center space-x-1.5 space-x-reverse">
             <span className="hover:text-[#E3E3E3] font-semibold mb-0.5">
-              {category ? (isAr ? category.titleAr : category.titleEn) : 'Wiki'}
+              {displayCategory ? (isAr ? displayCategory.titleAr : displayCategory.titleEn) : 'Wiki'}
             </span>
             <span>{isAr ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}</span>
             <span className="text-gray-300 capitalize bg-[#252525] px-2 py-0.5 rounded border border-[#2F2F2F] font-mono">
@@ -277,16 +366,52 @@ export default function PageView({
               )}
             </button>
 
-             {/* Edit page trigger button */}
+             {/* Edit / Save toggle */}
             <button
-              onClick={() => onEditPage(page)}
-              className="flex items-center space-x-1.5 space-x-reverse px-4 py-2 bg-[#252525] border border-[#2F2F2F] hover:bg-[#2F2F2F] text-[#E3E3E3] hover:text-white rounded text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              onClick={() => (isEditing ? saveEditing() : startEditing())}
+              className={`flex items-center space-x-1.5 space-x-reverse px-4 py-2 rounded text-xs font-semibold border transition-all cursor-pointer shadow-sm ${
+                isEditing
+                  ? 'bg-[#3E7B5D] border-[#3E7B5D] text-white hover:bg-[#468969]'
+                  : 'bg-[#252525] border-[#2F2F2F] hover:bg-[#2F2F2F] text-[#E3E3E3] hover:text-white'
+              }`}
             >
-              <Edit3 size={13} className="text-[#9B9B9B]" />
-              <span>{isAr ? 'تعديل الصفحة' : 'Modify Article'}</span>
+              {isEditing ? (
+                <>
+                  <Save size={13} />
+                  <span>{isAr ? 'حفظ' : 'Save'}</span>
+                </>
+              ) : (
+                <>
+                  <FileText size={13} className="text-[#9B9B9B]" />
+                  <span>{isAr ? 'تعديل' : 'Edit'}</span>
+                </>
+              )}
             </button>
 
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsMetadataOpen(true)}
+                className="flex items-center space-x-1.5 space-x-reverse px-3 py-2 bg-[#252525] border border-[#2F2F2F] hover:bg-[#2F2F2F] text-[#9B9B9B] hover:text-white rounded text-xs font-semibold transition-all cursor-pointer"
+                title={isAr ? 'إعدادات الصفحة' : 'Page settings'}
+              >
+                <Settings size={13} />
+              </button>
+            )}
+
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-3 py-2 text-xs text-[#9B9B9B] hover:text-white transition-colors"
+              >
+                {isAr ? 'إلغاء' : 'Cancel'}
+              </button>
+            )}
+
             {/* Vertical separator */}
+            {!isEditing && (
+              <>
             <div className="h-4 w-px bg-[#2F2F2F] self-center" />
 
             {/* Click-Based Multilevel Dropdown inside Dropdown */}
@@ -514,6 +639,8 @@ export default function PageView({
                 </div>
               )}
             </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -524,7 +651,7 @@ export default function PageView({
         {/* Core Page title definition */}
         <div className="mt-6">
           <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight">
-            {isAr ? page.titleAr : page.titleEn}
+            {displayTitle}
           </h1>
           
           <div className="flex items-center space-x-3 space-x-reverse mt-2.5 text-xs text-[#9B9B9B]">
@@ -534,12 +661,20 @@ export default function PageView({
             </span>
             <span>•</span>
             <span className="bg-[#252525] text-white px-2 py-0.5 rounded text-[10px] uppercase font-semibold border border-[#2F2F2F]">
-              {category ? (isAr ? category.titleAr : category.titleEn) : 'Knowledge Base'}
+              {displayCategory ? (isAr ? displayCategory.titleAr : displayCategory.titleEn) : 'Knowledge Base'}
             </span>
           </div>
         </div>
 
-        {/* Structured Content blocks */}
+        {isEditing ? (
+          <div className="mt-10">
+            <InlinePageEditor
+              blocks={draftBlocks}
+              language={language}
+              onChangeBlocks={(blocks) => updateEditDraft((draft) => ({ ...draft, blocks }))}
+            />
+          </div>
+        ) : (
         <div className={`mt-10 ${viewStyle === 'compact' ? 'space-y-4' : 'space-y-8'}`}>
           {page.blocks?.map((block) => {
             switch (block.type) {
@@ -637,9 +772,10 @@ export default function PageView({
             }
           })}
         </div>
+        )}
 
-        {/* 3. Fully Interactive Developer Scratchpad / Notepad (Custom user addition) */}
-        {viewStyle !== 'zen' && (
+        {/* Personal Developer Scratchpad */}
+        {!isEditing && viewStyle !== 'zen' && (
           <div className="mt-14 pt-8 border-t border-[#2F2F2F] space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-[#E3E3E3] uppercase tracking-wider flex items-center gap-2">
@@ -685,7 +821,27 @@ export default function PageView({
         </div>
       </div>
 
+      {/* Page metadata side panel */}
+      {page && (
+        <PageMetadataPanel
+          isOpen={isMetadataOpen}
+          onClose={() => setIsMetadataOpen(false)}
+          page={page}
+          categories={categories}
+          language={language}
+          titleEn={draftTitleEn}
+          titleAr={draftTitleAr}
+          icon={draftIcon}
+          categoryId={draftCategoryId}
+          onChangeTitleEn={(titleEn) => updateEditDraft((draft) => ({ ...draft, titleEn }))}
+          onChangeTitleAr={(titleAr) => updateEditDraft((draft) => ({ ...draft, titleAr }))}
+          onChangeIcon={(icon) => updateEditDraft((draft) => ({ ...draft, icon }))}
+          onChangeCategoryId={(categoryId) => updateEditDraft((draft) => ({ ...draft, categoryId }))}
+        />
+      )}
+
       {/* Floating font size controls */}
+      {!isEditing && (
       <div
         className={`fixed bottom-6 z-40 flex items-center gap-1 px-2 py-1.5 bg-[#252525]/95 backdrop-blur-sm border border-[#2F2F2F] rounded-lg shadow-xl ${
           isAr ? 'left-6' : 'right-6'
@@ -722,6 +878,7 @@ export default function PageView({
           <Plus size={14} />
         </button>
       </div>
+      )}
 
       {/* Floating State Toast Notification Banner */}
       {toastMessage && (

@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Category, TopicPage, Language, SyncConfig, SyncStatus, WikiState } from './types';
 import Sidebar from './components/Sidebar';
 import PageView from './components/PageView';
-import EditorModal from './components/EditorModal';
+import CategoryEditorModal from './components/CategoryEditorModal';
 import SyncSettingsModal from './components/SyncSettingsModal';
 import { Menu, X, AlertCircle } from 'lucide-react';
 import { collectCategoryDescendantIds } from './lib/categoryUtils';
@@ -34,11 +34,11 @@ export default function App() {
   // --- MOBILE RESPONSIVENESS STATE ---
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // --- EDITOR MODAL CONTROL STATE ---
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [editorType, setEditorType] = useState<'add-category' | 'editing-category' | 'add-page' | 'edit-page'>('add-page');
+  // --- CATEGORY EDITOR MODAL STATE ---
+  const [isCategoryEditorOpen, setIsCategoryEditorOpen] = useState(false);
+  const [categoryEditorType, setCategoryEditorType] = useState<'add-category' | 'editing-category'>('add-category');
   const [selectedCategoryToEdit, setSelectedCategoryToEdit] = useState<Category | undefined>(undefined);
-  const [selectedPageToEdit, setSelectedPageToEdit] = useState<TopicPage | undefined>(undefined);
+  const [autoEditPageId, setAutoEditPageId] = useState<string | null>(null);
 
   const applyWikiState = useCallback((state: WikiState) => {
     setCategories(state.categories);
@@ -128,9 +128,9 @@ export default function App() {
 
   // --- CATEGORY MANIPULATION ---
   const handleTriggerAddCategory = () => {
-    setEditorType('add-category');
+    setCategoryEditorType('add-category');
     setSelectedCategoryToEdit(undefined);
-    setIsEditorOpen(true);
+    setIsCategoryEditorOpen(true);
   };
 
   // --- CUSTOM DIALOG CONFIRMATION STATE ---
@@ -144,9 +144,9 @@ export default function App() {
   } | null>(null);
 
   const handleTriggerEditCategory = (cat: Category) => {
-    setEditorType('editing-category');
+    setCategoryEditorType('editing-category');
     setSelectedCategoryToEdit(cat);
-    setIsEditorOpen(true);
+    setIsCategoryEditorOpen(true);
   };
 
   const handleDeleteCategory = (catId: string) => {
@@ -204,15 +204,25 @@ export default function App() {
       });
       return;
     }
-    setEditorType('add-page');
-    setSelectedPageToEdit(undefined);
-    setIsEditorOpen(true);
-  };
-
-  const handleTriggerEditPage = (page: TopicPage) => {
-    setEditorType('edit-page');
-    setSelectedPageToEdit(page);
-    setIsEditorOpen(true);
+    const newPage: TopicPage = {
+      id: 'page-' + Date.now(),
+      categoryId: categories[0].id,
+      titleEn: 'Untitled',
+      titleAr: 'بدون عنوان',
+      icon: '📄',
+      lastUpdated: new Date().toISOString().split('T')[0],
+      blocks: [
+        {
+          id: 'md-' + Date.now(),
+          type: 'markdown',
+          contentEn: '',
+          contentAr: '',
+        },
+      ],
+    };
+    savePagesToStorage([...pages, newPage]);
+    setActivePageId(newPage.id);
+    setAutoEditPageId(newPage.id);
   };
 
   const handleDeletePage = (pageId: string) => {
@@ -447,8 +457,11 @@ export default function App() {
         <PageView
           page={activePage}
           category={activeCategory}
+          categories={categories}
           language={language}
-          onEditPage={handleTriggerEditPage}
+          onSavePage={handleSavePage}
+          autoEditOnMount={activePageId !== null && activePageId === autoEditPageId}
+          onAutoEditConsumed={() => setAutoEditPageId(null)}
           isCompleted={activePage ? completedPages.includes(activePage.id) : false}
           onToggleComplete={handleToggleCompletePage}
           notes={activeNotes}
@@ -456,15 +469,13 @@ export default function App() {
         />
       </div>
 
-      <EditorModal
-        isOpen={isEditorOpen}
-        onClose={() => setIsEditorOpen(false)}
-        type={editorType}
+      <CategoryEditorModal
+        isOpen={isCategoryEditorOpen}
+        onClose={() => setIsCategoryEditorOpen(false)}
+        type={categoryEditorType}
         categories={categories}
-        initialPageData={selectedPageToEdit}
         initialCategoryData={selectedCategoryToEdit}
         onSaveCategory={handleSaveCategory}
-        onSavePage={handleSavePage}
         language={language}
       />
 
