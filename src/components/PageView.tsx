@@ -5,16 +5,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { TopicPage, Category, Language } from '../types';
-import MarkdownContent from './MarkdownContent';
 import InlinePageEditor from './InlinePageEditor';
 import PageMetadataPanel from './PageMetadataPanel';
+import PageBlocksRenderer from './PageBlocksRenderer';
 import { createMarkdownBlock } from '../lib/pageBlocks';
 import { EditDraftSnapshot, useEditUndo } from '../lib/useEditUndo';
 import { 
   CheckCircle, 
   Circle, 
   Clock, 
-  ExternalLink, 
   Copy, 
   Check, 
   FileText, 
@@ -29,7 +28,8 @@ import {
   Type,
   Minus,
   Plus,
-  Settings
+  Settings,
+  PenLine
 } from 'lucide-react';
 
 const FONT_SCALE_STORAGE_KEY = 'devnotes_font_scale_v1';
@@ -88,6 +88,7 @@ export default function PageView({
   const isAr = language === 'ar';
   const [copiedBlockId, setCopiedBlockId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditPreview, setIsEditPreview] = useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
   const { snapshot: editDraft, update: updateEditDraft, undo: undoEditDraft, reset: resetEditDraft, flushPending: flushEditHistory } =
     useEditUndo(EMPTY_EDIT_DRAFT);
@@ -141,6 +142,7 @@ export default function PageView({
       icon: page.icon,
       categoryId: page.categoryId,
     });
+    setIsEditPreview(false);
     setIsEditing(true);
   }, [page, resetEditDraft]);
 
@@ -157,6 +159,7 @@ export default function PageView({
       blocks: editDraft.blocks,
     });
     setIsEditing(false);
+    setIsEditPreview(false);
     setToastMessage(isAr ? 'تم حفظ الصفحة!' : 'Page saved!');
     setTimeout(() => setToastMessage(null), 2500);
   }, [page, editDraft, flushEditHistory, onSavePage, isAr]);
@@ -167,6 +170,7 @@ export default function PageView({
     setIsMainMenuOpen(false);
     setActiveSubMenu(null);
     setIsEditing(false);
+    setIsEditPreview(false);
     setIsMetadataOpen(false);
   }, [notes, page?.id]);
 
@@ -391,6 +395,30 @@ export default function PageView({
             {isEditing && (
               <button
                 type="button"
+                onClick={() => setIsEditPreview((preview) => !preview)}
+                className={`flex items-center space-x-1.5 space-x-reverse px-3 py-2 rounded text-xs font-semibold border transition-all cursor-pointer ${
+                  isEditPreview
+                    ? 'bg-[#2F2F2F] border-[#3E7B5D] text-white'
+                    : 'bg-[#252525] border-[#2F2F2F] hover:bg-[#2F2F2F] text-[#9B9B9B] hover:text-white'
+                }`}
+              >
+                {isEditPreview ? (
+                  <>
+                    <PenLine size={13} />
+                    <span>{isAr ? 'متابعة التعديل' : 'Back to edit'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye size={13} />
+                    <span>{isAr ? 'معاينة' : 'Preview'}</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {isEditing && (
+              <button
+                type="button"
                 onClick={() => setIsMetadataOpen(true)}
                 className="flex items-center space-x-1.5 space-x-reverse px-3 py-2 bg-[#252525] border border-[#2F2F2F] hover:bg-[#2F2F2F] text-[#9B9B9B] hover:text-white rounded text-xs font-semibold transition-all cursor-pointer"
                 title={isAr ? 'إعدادات الصفحة' : 'Page settings'}
@@ -402,7 +430,10 @@ export default function PageView({
             {isEditing && (
               <button
                 type="button"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditPreview(false);
+                  setIsEditing(false);
+                }}
                 className="px-3 py-2 text-xs text-[#9B9B9B] hover:text-white transition-colors"
               >
                 {isAr ? 'إلغاء' : 'Cancel'}
@@ -668,109 +699,38 @@ export default function PageView({
 
         {isEditing ? (
           <div className="mt-10">
-            <InlinePageEditor
-              blocks={draftBlocks}
-              language={language}
-              onChangeBlocks={(blocks) => updateEditDraft((draft) => ({ ...draft, blocks }))}
-            />
+            {isEditPreview ? (
+              <div className="rounded-lg border border-[#3E7B5D]/30 bg-[#202020]/40 p-1">
+                <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[#3E7B5D] border-b border-[#2F2F2F]/60 mb-4">
+                  {isAr ? 'معاينة — التغييرات غير محفوظة' : 'Preview — unsaved changes'}
+                </p>
+                <div className="px-2 pb-2">
+                  <PageBlocksRenderer
+                    blocks={draftBlocks}
+                    language={language}
+                    compact={viewStyle === 'compact'}
+                    copiedBlockId={copiedBlockId}
+                    onCopyCode={copyToClipboard}
+                  />
+                </div>
+              </div>
+            ) : (
+              <InlinePageEditor
+                blocks={draftBlocks}
+                language={language}
+                onChangeBlocks={(blocks) => updateEditDraft((draft) => ({ ...draft, blocks }))}
+              />
+            )}
           </div>
         ) : (
-        <div className={`mt-10 ${viewStyle === 'compact' ? 'space-y-4' : 'space-y-8'}`}>
-          {page.blocks?.map((block) => {
-            switch (block.type) {
-              case 'markdown':
-                return (
-                  <div key={block.id}>
-                    <MarkdownContent
-                      content={(isAr ? block.contentAr : block.contentEn) ?? ''}
-                      compact={viewStyle === 'compact'}
-                    />
-                  </div>
-                );
-
-              case 'code':
-                return (
-                  <div 
-                    key={block.id} 
-                    className="rounded bg-[#202020] border border-[#2F2F2F] overflow-hidden font-mono text-xs flex flex-col shadow-sm"
-                  >
-                    {/* Code block header */}
-                    <div className="flex items-center justify-between px-4 py-2 bg-[#252525] border-b border-[#2F2F2F] text-[#9B9B9B] text-[11px] select-none">
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        <div className="flex space-x-1 space-x-reverse">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#373737]" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#454545]" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#555555]" />
-                        </div>
-                        <span className="text-[#E3E3E3] font-semibold tracking-wider font-mono uppercase bg-[#191919] px-2 py-0.5 rounded border border-[#2F2F2F]">
-                          {block.language || 'typescript'}
-                        </span>
-                      </div>
-                      
-                      <button
-                        onClick={() => copyToClipboard(block.code || '', block.id)}
-                        className="flex items-center space-x-1.5 space-x-reverse px-2 py-1 bg-[#2F2F2F] border border-[#373737] rounded hover:bg-[#373737] hover:text-[#E3E3E3] transition-all active:scale-95 cursor-pointer text-[#E3E3E3]"
-                      >
-                        {copiedBlockId === block.id ? (
-                          <>
-                            <Check size={11} className="text-[#3E7B5D]" />
-                            <span className="text-[#3E7B5D] font-semibold">{isAr ? 'تم النسخ!' : 'Copied!'}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={11} />
-                            <span>{isAr ? 'نسخ الشفرة' : 'Copy'}</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    {/* Actual Script lines code layout */}
-                    <pre className="p-4 bg-[#191919] text-[#CBD5E1] overflow-x-auto whitespace-pre leading-relaxed select-all">
-                      <code>{block.code}</code>
-                    </pre>
-                  </div>
-                );
-
-              case 'links':
-                return (
-                  <div key={block.id} className="space-y-3 mt-4">
-                    <div className="flex items-center space-x-2 space-x-reverse text-[#9B9B9B] font-bold text-xs uppercase tracking-wider select-none">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#9B9B9B]" />
-                      <span>{isAr ? 'المراجع ومصادر التعلم البرمجية' : 'Resource Documentation & Project Links'}</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      {block.links?.map((lnk) => (
-                        <a
-                          key={lnk.id}
-                          href={lnk.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-3.5 bg-[#202020] border border-[#2F2F2F] hover:bg-[#252525] hover:border-[#373737] rounded transition-all flex items-center justify-between group/link shadow-sm"
-                        >
-                          <div className="flex items-center space-x-2.5 space-x-reverse truncate pr-1">
-                            <span className="text-sm bg-[#2F2F2F] text-white p-1.5 rounded font-bold">
-                              {lnk.type === 'github' ? '📦' : lnk.type === 'docs' ? '📄' : '🔗'}
-                            </span>
-                            <div className="truncate">
-                              <p className="text-xs font-semibold text-[#E3E3E3] group-hover/link:text-white transition-colors truncate">
-                                {isAr ? lnk.labelAr : lnk.labelEn}
-                              </p>
-                              <p className="text-[10px] text-[#9B9B9B] font-mono truncate">{lnk.url}</p>
-                            </div>
-                          </div>
-                          <ExternalLink size={12} className="text-[#9B9B9B] group-hover/link:text-[#E3E3E3] transition-colors shrink-0" />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                );
-
-              default: {
-                const _exhaustive: never = block.type;
-                return null;
-              }
-            }
-          })}
+        <div className="mt-10">
+          <PageBlocksRenderer
+            blocks={page.blocks ?? []}
+            language={language}
+            compact={viewStyle === 'compact'}
+            copiedBlockId={copiedBlockId}
+            onCopyCode={copyToClipboard}
+          />
         </div>
         )}
 
