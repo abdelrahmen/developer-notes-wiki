@@ -25,8 +25,29 @@ import {
   ChevronDown,
   Eye,
   Download,
-  Search
+  Search,
+  Type,
+  Minus,
+  Plus
 } from 'lucide-react';
+
+const FONT_SCALE_STORAGE_KEY = 'devnotes_font_scale_v1';
+const FONT_SCALE_LEVELS = [0.85, 1, 1.15, 1.3, 1.45] as const;
+const DEFAULT_FONT_SCALE_INDEX = 1;
+
+function loadFontScaleIndex(): number {
+  try {
+    const raw = localStorage.getItem(FONT_SCALE_STORAGE_KEY);
+    if (raw === null) return DEFAULT_FONT_SCALE_INDEX;
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed >= 0 && parsed < FONT_SCALE_LEVELS.length) {
+      return parsed;
+    }
+  } catch {
+    // ignore invalid storage
+  }
+  return DEFAULT_FONT_SCALE_INDEX;
+}
 
 interface PageViewProps {
   page: TopicPage | null;
@@ -61,7 +82,13 @@ export default function PageView({
   const [isMainMenuOpen, setIsMainMenuOpen] = useState(false);
   const [activeSubMenu, setActiveSubMenu] = useState<'view' | 'export' | 'docs' | null>(null);
   const [viewStyle, setViewStyle] = useState<'default' | 'compact' | 'zen'>('default');
+  const [fontScaleIndex, setFontScaleIndex] = useState(loadFontScaleIndex);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const fontScale = FONT_SCALE_LEVELS[fontScaleIndex];
+  const fontScalePercent = Math.round(fontScale * 100);
+  const canDecreaseFont = fontScaleIndex > 0;
+  const canIncreaseFont = fontScaleIndex < FONT_SCALE_LEVELS.length - 1;
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -76,6 +103,10 @@ export default function PageView({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(FONT_SCALE_STORAGE_KEY, String(fontScaleIndex));
+  }, [fontScaleIndex]);
 
   // Sync state with changing pages
   useEffect(() => {
@@ -496,6 +527,10 @@ export default function PageView({
           </div>
         </div>
 
+        <div
+          className="page-font-scaled"
+          style={{ '--page-font-scale': fontScale } as React.CSSProperties}
+        >
         {/* Core Page title definition */}
         <div className="mt-6">
           <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight">
@@ -523,7 +558,7 @@ export default function PageView({
               </div>
               <span>{isAr ? 'توضيحات وملاحظات شخصية' : 'Personal Clarifications'}</span>
             </div>
-            <p className="text-sm text-[#E3E3E3]/95 leading-relaxed italic pr-1">
+            <p className="text-sm text-[#E3E3E3]/95 leading-relaxed italic pr-1 whitespace-pre-wrap">
               " {isAr ? page.personalClarificationAr : page.personalClarificationEn} "
             </p>
           </div>
@@ -550,7 +585,7 @@ export default function PageView({
                 return (
                   <p 
                     key={block.id} 
-                    className={`leading-relaxed font-sans ${
+                    className={`leading-relaxed font-sans whitespace-pre-wrap ${
                       viewStyle === 'compact' ? 'text-xs text-[#CBD5E1]' : 'text-sm text-[#E3E3E3]/95'
                     }`}
                   >
@@ -571,7 +606,7 @@ export default function PageView({
                       <h4 className="text-xs font-bold text-[#E3E3E3] uppercase tracking-wide">
                         {isAr ? block.titleAr : block.titleEn}
                       </h4>
-                      <p className="text-xs leading-relaxed text-[#9B9B9B]">
+                      <p className="text-xs leading-relaxed text-[#9B9B9B] whitespace-pre-wrap">
                         {isAr ? block.textAr : block.textEn}
                       </p>
                     </div>
@@ -627,7 +662,7 @@ export default function PageView({
                     key={block.id} 
                     className="p-4 bg-[#252525] border border-[#2F2F2F] rounded flex items-start space-x-3 space-x-reverse transition-all"
                   >
-                    <div className="flex-1 text-sm text-[#E3E3E3]/95 leading-relaxed font-medium">
+                    <div className="flex-1 text-sm text-[#E3E3E3]/95 leading-relaxed font-medium whitespace-pre-wrap">
                       {isAr ? block.textAr : block.textEn}
                     </div>
                   </div>
@@ -717,6 +752,45 @@ export default function PageView({
             />
           </div>
         )}
+        </div>
+      </div>
+
+      {/* Floating font size controls */}
+      <div
+        className={`fixed bottom-6 z-40 flex items-center gap-1 px-2 py-1.5 bg-[#252525]/95 backdrop-blur-sm border border-[#2F2F2F] rounded-lg shadow-xl ${
+          isAr ? 'left-6' : 'right-6'
+        }`}
+        role="toolbar"
+        aria-label={isAr ? 'التحكم بحجم الخط' : 'Font size controls'}
+      >
+        <Type size={14} className="text-[#9B9B9B] shrink-0 mx-0.5" aria-hidden />
+        <button
+          type="button"
+          onClick={() => setFontScaleIndex((i) => Math.max(0, i - 1))}
+          disabled={!canDecreaseFont}
+          className="p-1.5 rounded hover:bg-[#2F2F2F] text-[#E3E3E3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          aria-label={isAr ? 'تصغير الخط' : 'Decrease font size'}
+        >
+          <Minus size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setFontScaleIndex(DEFAULT_FONT_SCALE_INDEX)}
+          className="min-w-[3rem] px-1 text-[11px] font-mono font-semibold text-[#9B9B9B] hover:text-[#E3E3E3] transition-colors cursor-pointer"
+          aria-label={isAr ? 'إعادة ضبط حجم الخط' : 'Reset font size'}
+          title={isAr ? 'إعادة الضبط' : 'Reset'}
+        >
+          {fontScalePercent}%
+        </button>
+        <button
+          type="button"
+          onClick={() => setFontScaleIndex((i) => Math.min(FONT_SCALE_LEVELS.length - 1, i + 1))}
+          disabled={!canIncreaseFont}
+          className="p-1.5 rounded hover:bg-[#2F2F2F] text-[#E3E3E3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          aria-label={isAr ? 'تكبير الخط' : 'Increase font size'}
+        >
+          <Plus size={14} />
+        </button>
       </div>
 
       {/* Floating State Toast Notification Banner */}
